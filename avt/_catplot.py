@@ -100,6 +100,11 @@ def clockplot(
         Whether to plot a legend. 
         Defaults to `True`.
     
+    - `kwargs`:
+        Any other keyword arguments are
+        passed to `plt.bar`. From here,
+        you can change a variety of the bar
+        attributes.
     
     
     Returns
@@ -137,10 +142,8 @@ def clockplot(
             colors = [None]*len(hue_order)
 
     # making sure that 00:00 and 23:59 are in groups
-
     time_values = pd.timedelta_range(start='0 day', end='1 day', freq=freq, closed='left')
     time_values = (pd.to_datetime(0) + time_values).strftime(label_format)
-
     new_row = pd.DataFrame({
         x: time_values,
         agg_col: ['__nan__']*len(time_values),
@@ -148,8 +151,7 @@ def clockplot(
         })
     data = pd.concat([new_row, data])
 
-
-
+    # grouping data
     data = (data
         .assign(__value2__ = 1)
         .assign(**{x : lambda t: pd.to_datetime(t[x])})
@@ -161,18 +163,15 @@ def clockplot(
         .reset_index()
         .assign(time = lambda t: t['time'] - pd.to_datetime(t['time'].dt.date))
         )
-
     data['time_agg'] = pd.factorize(data['time'])[0]
-    
-    if len(data.columns) == 4:
-        data.columns = ['time', agg_col, 'count', 'time_agg', ]
+    data.columns = ['time', agg_col, 'count', 'time_agg', ]
 
+    # removing extra rows placed in data frame
+    # when ensuring all time groups would be used
     hue_cats = [cat for cat in data[agg_col].unique() if not cat == '__nan__']
     real_data_df = data[data[agg_col] != '__nan__'].copy()
     placeholder_data_df = data[data[agg_col] == '__nan__'].copy()
-    
     for cat in hue_cats:
-
         real_data_df = (real_data_df
             .set_index(['time', 'time_agg', agg_col])
             ).add(
@@ -182,13 +181,11 @@ def clockplot(
                     .set_index(['time', 'time_agg', agg_col]),
                 fill_value=0
                 ).reset_index()
-
-    
     data = real_data_df.sort_values('time').copy()
 
+    # plotting
     x = 'time_agg'
     y = 'count'
-
     
     if ax is None:
         fig, ax = plt.subplots(1,1, figsize=(8,8), subplot_kw={'projection': 'polar'})
@@ -241,7 +238,6 @@ def clockplot(
     
     bars_list = []
     n_plots = 1 if hue_order is None else len(hue_order)
-    colors = list(colors[::-1])
 
     for nb in range(n_plots):
         # Draw bars
@@ -250,7 +246,7 @@ def clockplot(
             height=bar_heights[::-1][nb], 
             width=bar_width, 
             linewidth=2,
-            color=[colors[nb]],
+            color=[colors[::-1][nb]],
             label= '' if hue_order is None else hue_order[::-1][nb],
             **kwargs)
         bars_list.append(bars)
