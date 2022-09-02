@@ -308,3 +308,101 @@ def clockplot(
             ) 
 
     return ax
+
+
+
+
+
+
+
+
+
+
+def bar_labels(
+    fig:plt.figure, 
+    labels:typing.Union[None, typing.List[str]]=None,
+    label_format:str='{height}',
+    **kwargs,
+    ) -> plt.figure:
+    '''
+    Adds labels to bars in graph.
+    
+    
+    Examples
+    ---------
+
+    The following will add the label heights and format
+    them as a percentage:
+
+    ```
+    >>> g = sns.catplot(...)
+    >>> avt.bar_labels(g.figure, label_format='{height:.1%}')
+    ```
+
+    The following will add the labels `'bar1'` and `'bar2'`
+    to the bars in the first axes and `'bar3'`
+    and `'bar4'` to the bars in the second axes.
+
+    ```
+    >>> g = sns.catplot(...)
+    >>> labels = [
+            ['bar1','bar2'], # first axis
+            ['bar3', 'bar4'] # second axis
+            ]
+    >>> avt.bar_labels(g.figure, labels=labels)
+    ```
+    
+    Arguments
+    ---------
+    
+    - `fig`: `plt.figure`: 
+        The matplotlib figure to add bar labels to.
+    
+    - `labels`: `typing.List[str]`: 
+        Labels to add to the bars.
+        This should be a list of lists, in which 
+        the outer list acts over the axes in 
+        the plot and the inner list is the labels
+        for the bars. If `None`, then the bar labels
+        will be the heights of the bars.
+        Defaults to `None`.
+
+    - `label_format`: `str`:
+        The format of the bar labels, used only 
+        if `labels=None`. This needs to contain 
+        the word `height`, in `{}`, where the bar
+        heights will be placed.
+        Defaults to `'{height}'`.
+    
+    - `kwargs`: `: 
+        Keyword arguments passed to `plt.bar_label`.
+        Examples could be `rotation`, `padding`, 
+        `label_type`, and `fontsize`.
+    
+    
+    Returns
+    --------
+    
+    - `out`: `plt.figure` : 
+        Matplotlib figure, containing the added
+        bar labels.
+    
+    
+    '''
+    
+    for ax in fig.axes:
+        for nc, c in enumerate(ax.containers):
+            if labels is None:
+                heights = [v.get_height() for v in c]
+                l = [label_format.format(height=height) for height in heights]
+            else:
+                l = labels[nc]
+            ax.bar_label(
+                c, 
+                labels=l, 
+                **kwargs,
+                )
+        ax.margins(y=0.2)
+        ax.set_ylim(0,1.2)
+
+    return fig
