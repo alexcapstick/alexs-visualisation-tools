@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
+import seaborn as sns
 import typing
-
 
 
 
@@ -143,7 +144,10 @@ def clockplot(
 
     # making sure that 00:00 and 23:59 are in groups
     time_values = pd.timedelta_range(start='0 day', end='1 day', freq=freq, closed='left')
-    time_values = (pd.to_datetime(0) + time_values).strftime(label_format)
+    if type(label_format) != bool:
+        time_values = (pd.to_datetime(0) + time_values).strftime(label_format)
+    else:
+        time_values = pd.to_datetime(0) + time_values
     new_row = pd.DataFrame({
         x: time_values,
         agg_col: ['__nan__']*len(time_values),
@@ -308,6 +312,260 @@ def clockplot(
             ) 
 
     return ax
+
+
+
+
+
+
+
+
+
+
+def timefreqheatmap(
+    data:pd.DataFrame, 
+    x:typing.Union[str, None]=None, 
+    y:typing.Union[str, None]=None, 
+    hue:typing.Union[str, None]=None, 
+    ax:typing.Union[plt.axes, None]=None, 
+    hue_order:typing.Union[typing.List[str], None]=None, 
+    freq:str='30T', 
+    label_format:typing.Union[bool, str]=True, 
+    cmap:typing.Union[typing.List[str], str, None]=None,
+    binary:bool=False,
+    **kwargs,
+    ): 
+    '''
+    This function plots a heatmap with the frequencies
+    of data points, against the date.
+    
+    
+    
+    Examples
+    ---------
+    ```
+    >>> fig, ax = plt.subplots(1, 1, figsize=(15,8))
+    >>> ax = timefreqheatmap(
+        wearable_walking, 
+        x='start_date', 
+        freq='1d', 
+        hue='patient_id', 
+        ax=ax, 
+        label_format='%d-%b-%Y',
+        cmap='Blues',
+        binary=True,
+        )
+    ```
+    
+    Arguments
+    ---------
+    
+    - `data`: `pd.DataFrame`: 
+        The data.
+    
+    - `x`: `typing.Union[str, None]`, optional:
+        The column name containing the datetimes to use
+        for calculating the time bins. 
+        Defaults to `None`.
+    
+    - `y`: `typing.Union[str, None]`, optional:
+        Ignored. 
+        Defaults to `None`.
+    
+    - `hue`: `typing.Union[str, None]`, optional:
+        Semantic variable that is mapped to determine 
+        the color of plot elements. This will determine
+        the different rows of the heatmap.
+        Defaults to `None`.
+    
+    - `ax`: `typing.Union[plt.axes, None]`, optional:
+        A matplotlib axes that the plot can be drawn on. 
+        Defaults to `None`.
+    
+    - `hue_order`: `typing.Union[typing.List[str], None]`, optional:
+        The order of the hue and rows. 
+        Defaults to `None`.
+    
+    - `freq`: `str`, optional:
+        The frequency to bin the columns of the heatmap
+        at. 
+        https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases.
+        Defaults to `'30T'`.
+    
+    - `label_format`: `typing.Union[bool, str]`, optional:
+        The format of the time labels.
+        Any argument to `dt.strftime` is acceptable.
+        https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior.
+        Defaults to `True`.
+    
+    - `cmap`: `typing.Union[str, None]`, optional:
+        This is the cmap for plotting the colours
+        on the heatmap. If a `str`, then this should
+        be an acceptable argument to `sns.mpl_palette`.
+        If `None`, this heatmap defaults to `'inferno'`.
+        Defaults to `None`.
+    
+    - `binary`: `bool`:
+        Whether to plot if there
+        was a value or not, rather than the number of
+        recorded values.
+        Defaults to `False`.
+    
+    - `kwargs`:
+        Any other keyword arguments are
+        passed to `plt.bar`. From here,
+        you can change a variety of the bar
+        attributes.
+    
+    
+    Returns
+    --------
+    
+    - `out`: `plt.axes` : 
+        The axes containing the plot.
+    
+    
+    '''
+
+
+    data = (data
+        .copy()
+        )
+    
+    data[x] = pd.to_datetime(data[x])
+
+    if not hue is None:
+        if hue_order is None:
+            hue_order = data[hue].unique()
+
+    if hue is None:
+        data = data.assign(__value__='any')
+        agg_col = '__value__' 
+    else:
+        agg_col = hue
+
+    # making sure that all times are in groups
+    min_datetime = data[x].min()
+    max_datetime = data[x].max()
+    time_values = pd.timedelta_range(start=0, end=max_datetime-min_datetime, freq=freq, closed='left')
+
+    if type(label_format) != bool:
+        time_values = (min_datetime + time_values).strftime(label_format)
+    else:
+        time_values = min_datetime + time_values
+    new_row = pd.DataFrame({
+        x: time_values,
+        agg_col: ['__nan__']*len(time_values),
+        
+        })
+    data = pd.concat([new_row, data])
+
+    # grouping data
+    data = (data
+        .assign(__value2__ = 1)
+        .assign(**{x : lambda t: pd.to_datetime(t[x])})
+        .assign(date_time = lambda t: t[x])
+        [['date_time', agg_col,]]
+        .groupby(by=[pd.Grouper(key='date_time', axis=0, freq=freq), agg_col])
+        .agg({agg_col: ['count',]})
+        .reset_index()
+        
+        )
+    data['date_time_agg'] = pd.factorize(data['date_time'])[0]
+    data.columns = ['date_time', agg_col, 'count', 'date_time_agg', ]
+
+    # removing extra rows placed in data frame
+    # when ensuring all time groups would be used
+    hue_cats = [cat for cat in data[agg_col].unique() if not cat == '__nan__']
+    real_data_df = data[data[agg_col] != '__nan__'].copy()
+    placeholder_data_df = data[data[agg_col] == '__nan__'].copy()
+    for cat in hue_cats:
+        real_data_df = (real_data_df
+            .set_index(['date_time', 'date_time_agg', agg_col])
+            ).add(
+                placeholder_data_df
+                    .assign(**{agg_col: cat})
+                    .assign(count=0)
+                    .set_index(['date_time', 'date_time_agg', agg_col]),
+                fill_value=0
+                ).reset_index()
+    data = real_data_df.sort_values('date_time').copy()
+
+    # plotting
+    x = 'date_time_agg'
+    date_col = 'date_time'
+    y = 'count'
+
+    if ax is None:
+        fig, ax = plt.subplots(1,1, figsize=(8,8))
+
+    # getting array of counts
+    groupby_list=[x, date_col]
+    if not hue is None: groupby_list.append(hue)
+    data = (data
+        .groupby(by=groupby_list)
+        .agg({'count':'sum'})
+        )
+    if hue is None:
+        data = data.assign(__level__=1).set_index('__level__', append=True)
+    data = data.unstack().fillna(0)
+
+    data = (data
+        .reset_index()
+        [[x, 'date_time', 'count']]
+        .sort_values(x)
+        .assign(date_time=lambda t: 
+            t['date_time'].dt.strftime(label_format) if not type(label_format) is bool else t['date_time']
+            )
+        )
+    date_times = data['date_time']
+    data= (data
+        .set_index(x)
+        .T
+        .reset_index(level=0, drop=True)
+        .loc[hue_order]
+        )
+
+    # plotting
+    cbar=True
+    if binary:
+        data = data > 0
+        cbar=False
+    else:
+        data = data.astype(int)
+
+    if cmap is None:
+        cmap = sns.mpl_palette('inferno', as_cmap= not binary)
+    elif type(cmap) == str:
+        cmap = sns.mpl_palette(cmap, as_cmap=not binary)
+
+    ax = sns.heatmap(data=data, ax=ax, cmap=cmap, cbar=cbar)
+
+    ax.tick_params('x', rotation=-90)
+
+    if hue is None:
+        ax.set_ylabel('')
+        ax.set_yticklabels('')
+    
+    if binary:
+        legend_handles = [Patch(color=cmap[-1], label='On'),
+                        Patch(color=cmap[0], label='Off')] 
+        ax.legend(handles=legend_handles, ncol=2, bbox_to_anchor=[0.5, 1.02], loc='lower center')
+    
+    x_ticks = np.asarray([tick.get_text() for tick in ax.get_xticklabels()], dtype=int)
+    date_times = date_times.values[x_ticks]
+    
+    ax.set_xticklabels(date_times)
+
+    return ax
+
+
+
+
+
+
+
+
 
 
 
