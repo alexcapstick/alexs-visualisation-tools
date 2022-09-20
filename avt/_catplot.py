@@ -92,6 +92,8 @@ def clockplot(
     - label_freq: typing.Union[str, None], optional:
         How often to show the time labels should be shown.
         https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases. 
+        :code:`True` leaves the labels as default and
+        :code:`False` removes them.
         Defaults to :code:`None`.
     
     - cmap: typing.Union[mcs.Colormap, str, None], optional:
@@ -419,6 +421,8 @@ def timefreqheatmap(
         The format of the time labels.
         Any argument to :code:`dt.strftime` is acceptable.
         https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior.
+        :code:`True` leaves the labels as default and
+        :code:`False` removes them.
         Defaults to :code:`True`.
     
     - cmap: typing.Union[str, None], optional:
@@ -577,8 +581,12 @@ def timefreqheatmap(
     
     x_ticks = np.asarray([tick.get_text() for tick in ax.get_xticklabels()], dtype=int)
     date_times = date_times.values[x_ticks]
-    
     ax.set_xticklabels(date_times)
+
+    if type(label_format) is bool:
+        if not label_format:
+            ax.set_xticks([])
+
 
     return ax
 
