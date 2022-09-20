@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import typing
 
+import matplotlib.colors as mcs
 import matplotlib.pyplot as plt
 
 def stackplot(
@@ -11,7 +12,7 @@ def stackplot(
     hue:typing.Union[str, None]=None, 
     ax:typing.Union[plt.axes, None]=None, 
     hue_order:typing.Union[typing.List[str], None]=None, 
-    colors:typing.Union[typing.List[str], str, None]=None,
+    cmap:typing.Union[mcs.Colormap, str, None]=None,
     legend:bool=True,
     **kwargs,
     ):
@@ -25,17 +26,20 @@ def stackplot(
 
     .. code-block:: 
 
-        >>> fig, ax = plt.subplots(1, 1, figsize=(8,8))
-        >>> ax = avt.stackplot(
-                data=data_plot, 
-                x='date', 
-                y='Cumulative Frequency',
-                hue='Outcome',
-                hue_order=['Negative UTI', 'Positive UTI'],
-                colors=[colour1, colour2],
-                ax=ax,
-                legend=False,
-                )
+        >>> import avt
+
+        >>> import seaborn as sns
+        >>> import pandas as pd
+        >>> flights = sns.load_dataset('flights')
+        >>> ax = avt.stackplot(flights, x='year', y='passengers', hue='month', cmap='Blues')
+
+    This will return the plot:
+
+    .. image:: figures/stackplot.png
+        :width: 400
+        :alt: Alternative text
+
+
 
     
     Arguments
@@ -45,12 +49,11 @@ def stackplot(
         The data.
     
     - x: typing.Union[str, None], optional:
-        The column name containing the datetimes to use
-        for calculating the time bins. 
+        The column name containing the x values. 
         Defaults to :code:`None`.
     
     - y: typing.Union[str, None], optional:
-        Ignored. 
+        The column containing the heights. 
         Defaults to :code:`None`.
     
     - hue: typing.Union[str, None], optional:
@@ -67,12 +70,11 @@ def stackplot(
         The order of the hue and stacked bars. 
         Defaults to :code:`None`.
     
-    - colors: typing.Union[typing.List[str], str, None], optional:
+    - cmap: typing.Union[mcs.Colormap, str, None], optional:
         The colours of the plot. If a string is passed,
         this will be used to colour all of the stacked bars.
-        If a list is passed, it will be iterated over when plotting
-        the stacked bars (please ensure it is at least as long as
-        the number of hue values). If :code:`None`, then matplotlib handles
+        If a cmap is passed, then this is used. 
+        If :code:`None`, then matplotlib handles
         the colours. 
         Defaults to :code:`None`.
     
@@ -99,24 +101,13 @@ def stackplot(
     if not hue is None:
         if hue_order is None:
             hue_order = data[hue].unique()
-        
 
-    if hue is None:
-        if type(colors) == str:
-            colors = [colors]
-        elif colors is None:
-            colors = [None]
+        if type(cmap) == str:
+            cmap = plt.get_cmap(cmap)
+            cmap = [cmap(i) for i in np.linspace(0,1,len(hue_order))]
+        elif isinstance(cmap, mcs.Colormap):
+            cmap = [cmap(i) for i in np.linspace(0,1,len(hue_order))]
 
-    else:
-        if type(colors) == str:
-            colors = [colors]*len(hue_order)
-        elif colors is None:
-            colors = [None]*len(hue_order)
-    
-    if hue is None:
-        y_plot = data[y].values.reshape(1,-1)
-        x_plot = data[x].values
-    else:
         y_plot = np.vstack(
             [
                 data[y].values[data[hue].values==hue_val].reshape(1,-1) 
@@ -129,21 +120,37 @@ def stackplot(
                 for hue_val in hue_order]
             )
 
+    else:
+        if type(cmap) == str:
+            cmap = plt.get_cmap(cmap)
+            cmap = [cmap(1)]
+        elif isinstance(cmap, mcs.Colormap):
+            cmap = [cmap(1)]
+
+        hue_order = [x]
+        y_plot = data[y].values.reshape(1,-1)
+        x_plot = data[x].values.reshape(1,-1)
+
+
     if ax is None:
         fig, ax = plt.subplots(1,1)
 
-    if not 'edgecolor' in kwargs:
-        kwargs['edgecolor'] = 'white'
+
 
     n_plots = 1 if hue_order is None else len(hue_order)
 
     for ng in range(n_plots):
+
+        if not cmap is None:
+            kwargs['color'] = [cmap[::-1][ng]]
+        if not 'edgecolor' in kwargs:
+            kwargs['edgecolor'] = 'white'
+
         ax.fill_between(
             x=x_plot[n_plots-1-ng, :],
             y1=y_plot[n_plots-1-ng, :],
             y2=0,
             label=hue_order[::-1][ng],
-            color=[colors[::-1][ng]],
             **kwargs,
         )
 
