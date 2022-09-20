@@ -22,65 +22,67 @@ def stackplot(
     
     Examples
     ---------
-    ```
-    >>> fig, ax = plt.subplots(1, 1, figsize=(8,8))
-    >>> ax = avt.stackplot(
-            data=data_plot, 
-            x='date', 
-            y='Cumulative Frequency',
-            hue='Outcome',
-            hue_order=['Negative UTI', 'Positive UTI'],
-            colors=[colour1, colour2],
-            ax=ax,
-            legend=False,
-            )
-    ```
+
+    .. code-block:: 
+
+        >>> fig, ax = plt.subplots(1, 1, figsize=(8,8))
+        >>> ax = avt.stackplot(
+                data=data_plot, 
+                x='date', 
+                y='Cumulative Frequency',
+                hue='Outcome',
+                hue_order=['Negative UTI', 'Positive UTI'],
+                colors=[colour1, colour2],
+                ax=ax,
+                legend=False,
+                )
+
     
     Arguments
     ---------
     
-    - `data`: `pd.DataFrame`: 
+    - data: pd.DataFrame: 
         The data.
     
-    - `x`: `typing.Union[str, None]`, optional:
+    - x: typing.Union[str, None], optional:
         The column name containing the datetimes to use
         for calculating the time bins. 
-        Defaults to `None`.
+        Defaults to :code:`None`.
     
-    - `y`: `typing.Union[str, None]`, optional:
+    - y: typing.Union[str, None], optional:
         Ignored. 
-        Defaults to `None`.
+        Defaults to :code:`None`.
     
-    - `hue`: `typing.Union[str, None]`, optional:
+    - hue: typing.Union[str, None], optional:
         Semantic variable that is mapped to determine 
         the color of plot elements. This will determine
         the stacked bars.
-        Defaults to `None`.
+        Defaults to :code:`None`.
     
-    - `ax`: `typing.Union[plt.axes, None]`, optional:
+    - ax: typing.Union[plt.axes, None], optional:
         A matplotlib axes that the plot can be drawn on. 
-        Defaults to `None`.
+        Defaults to :code:`None`.
     
-    - `hue_order`: `typing.Union[typing.List[str], None]`, optional:
+    - hue_order: typing.Union[typing.List[str], None], optional:
         The order of the hue and stacked bars. 
-        Defaults to `None`.
+        Defaults to :code:`None`.
     
-    - `colors`: `typing.Union[typing.List[str], str, None]`, optional:
+    - colors: typing.Union[typing.List[str], str, None], optional:
         The colours of the plot. If a string is passed,
         this will be used to colour all of the stacked bars.
         If a list is passed, it will be iterated over when plotting
         the stacked bars (please ensure it is at least as long as
-        the number of hue values). If `None`, then matplotlib handles
+        the number of hue values). If :code:`None`, then matplotlib handles
         the colours. 
-        Defaults to `None`.
+        Defaults to :code:`None`.
     
-    - `legend`: `bool`, optional:
+    - legend: bool, optional:
         Whether to plot a legend. 
-        Defaults to `True`.
+        Defaults to :code:`True`.
     
-    - `kwargs`:
+    - kwargs:
         Any other keyword arguments are
-        passed to `plt.fill_between`. From here,
+        passed to :code:`plt.fill_between`. From here,
         you can change a variety of the bar
         attributes.
     
@@ -88,7 +90,7 @@ def stackplot(
     Returns
     --------
     
-    - `out`: `plt.axes` : 
+    - out: plt.axes: 
         The axes containing the plot.
     
     

@@ -1,0 +1,7 @@
+"""The module's version information."""
+__author__ = "Alex Capstick"
+__title__ = "avt"
+__version__ = "0.0.1"
+__doc__ = "Some graphing code that I've found helpful."
+__copyright__ = "2022, Alexander Capstick"
+__author_email__ = "alexander.capstick19@imperial.ac.uk"
