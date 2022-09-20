@@ -36,7 +36,8 @@ def stackplot(
     This will return the plot:
 
     .. image:: figures/stackplot.png
-        :width: 400
+        :width: 600
+        :align: center
         :alt: Alternative text
 
 

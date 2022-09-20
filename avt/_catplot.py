@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import matplotlib.colors as mcs
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 import seaborn as sns
@@ -17,7 +18,7 @@ def clockplot(
     freq:str='30T', 
     label_format:typing.Union[bool, str]=True, 
     label_freq:typing.Union[str, None]=None,
-    colors:typing.Union[typing.List[str], str, None]=None,
+    cmap:typing.Union[mcs.Colormap, str, None]=None,
     legend:bool=True,
     **kwargs,
     ): 
@@ -32,17 +33,20 @@ def clockplot(
 
     .. code-block:: 
     
-        >>> fig, ax = plt.subplots(1, 1, figsize=(8,8), subplot_kw={'projection': 'polar'})
         >>> ax = avt.clockplot(
-                data=sleep_and_motion_df, 
-                x='start_date', 
-                hue='type',
+                data, 
+                x='datetime', 
+                hue='group',
                 label_format='%H:%M', 
-                freq='30T',
-                ax=ax, 
-                colors=None,
-                label_freq='30T'
+                label_freq='3H',
                 )
+
+    This will return the plot:
+
+    .. image:: figures/clockplot.png
+        :width: 600
+        :align: center
+        :alt: Alternative text
 
     
     Arguments
@@ -90,12 +94,11 @@ def clockplot(
         https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases. 
         Defaults to :code:`None`.
     
-    - colors: typing.Union[typing.List[str], str, None], optional:
+    - cmap: typing.Union[mcs.Colormap, str, None], optional:
         The colours of the plot. If a string is passed,
         this will be used to colour all of the stacked bars.
-        If a list is passed, it will be iterated over when plotting
-        the stacked bars (please ensure it is at least as long as
-        the number of hue values). If :code:`None`, then matplotlib handles
+        If a cmap is passed, then this is used. 
+        If :code:`None`, then matplotlib handles
         the colours. 
         Defaults to :code:`None`.
     
@@ -129,20 +132,25 @@ def clockplot(
         if hue_order is None:
             hue_order = data[hue].unique()
 
+        if type(cmap) == str:
+            cmap = plt.get_cmap(cmap)
+            cmap = [cmap(i) for i in np.linspace(0,1,len(hue_order))]
+        elif isinstance(cmap, mcs.Colormap):
+            cmap = [cmap(i) for i in np.linspace(0,1,len(hue_order))]
+        
+        agg_col = hue
+
+
     if hue is None:
         data = data.assign(__value__='any')
         agg_col = '__value__'
         
-        if type(colors) == str:
-            colors = [colors]
-        elif colors is None:
-            colors = [None]
-    else:
-        agg_col = hue
-        if type(colors) == str:
-            colors = [colors]*len(hue_order)
-        elif colors is None:
-            colors = [None]*len(hue_order)
+        if type(cmap) == str:
+            cmap = plt.get_cmap(cmap)
+            cmap = [cmap(1)]
+        elif isinstance(cmap, mcs.Colormap):
+            cmap = [cmap(1)]
+
 
     # making sure that 00:00 and 23:59 are in groups
     time_values = pd.timedelta_range(start='0 day', end='1 day', freq=freq, closed='left')
@@ -247,12 +255,15 @@ def clockplot(
 
     for nb in range(n_plots):
         # Draw bars
+
+        if not cmap is None:
+            kwargs['color'] = [cmap[::-1][nb]]
+
         bars = ax.bar(
             x=angles, 
             height=bar_heights[::-1][nb], 
             width=bar_width, 
             linewidth=2,
-            color=[colors[::-1][nb]],
             label= '' if hue_order is None else hue_order[::-1][nb],
             **kwargs)
         bars_list.append(bars)
@@ -267,6 +278,8 @@ def clockplot(
     if type(label_format) == bool:
         if not label_format:
             return ax
+        else:
+            labels = (pd.to_datetime(0) + data['time']).unique()
     else:
         if not label_freq is None:
             labels_allowed = pd.timedelta_range(start='0 day', end='1 day', freq=label_freq, closed='left')
@@ -345,19 +358,26 @@ def timefreqheatmap(
     
     Examples
     ---------
-    .. code-block:: 
 
-        >>> fig, ax = plt.subplots(1, 1, figsize=(15,8))
-        >>> ax = timefreqheatmap(
-            wearable_walking, 
-            x='start_date', 
-            freq='1d', 
-            hue='patient_id', 
-            ax=ax, 
-            label_format='%d-%b-%Y',
-            cmap='Blues',
-            binary=True,
-            )
+    .. code-block:: 
+    
+        >>> ax = avt.timefreqheatmap(
+                data,
+                x='datetime',
+                hue='group',
+                freq='1H',
+                label_format='%H:%M-%d/%b/%Y',
+                cmap='Blues',
+                ax=ax
+                )
+
+    This will return the plot:
+
+    .. image:: figures/timefreqheatmap.png
+        :width: 600
+        :align: center
+        :alt: Alternative text
+
 
     
     Arguments
@@ -416,7 +436,7 @@ def timefreqheatmap(
     
     - kwargs:
         Any other keyword arguments are
-        passed to :code:`plt.bar`. From here,
+        passed to :code:`sns.heatmap`. From here,
         you can change a variety of the bar
         attributes.
     
@@ -452,16 +472,15 @@ def timefreqheatmap(
     max_datetime = data[x].max()
     time_values = pd.timedelta_range(start=0, end=max_datetime-min_datetime, freq=freq, closed='left')
 
-    if type(label_format) != bool:
-        time_values = (min_datetime + time_values).strftime(label_format)
-    else:
-        time_values = min_datetime + time_values
+
+    time_values = min_datetime + time_values
     new_row = pd.DataFrame({
         x: time_values,
         agg_col: ['__nan__']*len(time_values),
         
         })
     data = pd.concat([new_row, data])
+
 
     # grouping data
     data = (data
@@ -472,8 +491,8 @@ def timefreqheatmap(
         .groupby(by=[pd.Grouper(key='date_time', axis=0, freq=freq), agg_col])
         .agg({agg_col: ['count',]})
         .reset_index()
-        
         )
+
     data['date_time_agg'] = pd.factorize(data['date_time'])[0]
     data.columns = ['date_time', agg_col, 'count', 'date_time_agg', ]
 
@@ -521,6 +540,7 @@ def timefreqheatmap(
             t['date_time'].dt.strftime(label_format) if not type(label_format) is bool else t['date_time']
             )
         )
+
     date_times = data['date_time']
     data= (data
         .set_index(x)
@@ -542,7 +562,7 @@ def timefreqheatmap(
     elif type(cmap) == str:
         cmap = sns.mpl_palette(cmap, as_cmap=not binary)
 
-    ax = sns.heatmap(data=data, ax=ax, cmap=cmap, cbar=cbar)
+    ax = sns.heatmap(data=data, ax=ax, cmap=cmap, cbar=cbar, **kwargs)
 
     ax.tick_params('x', rotation=-90)
 
