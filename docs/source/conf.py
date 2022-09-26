@@ -54,6 +54,7 @@ napoleon_numpy_docstring = True
 napoleon_include_init_with_doc = True
 napoleon_include_special_with_doc = True
 napoleon_use_admonition_for_examples = True
+autodoc_typehints = 'both'
 
 
 import re
@@ -72,6 +73,6 @@ def skip(app, what, name, obj, would_skip, options):
     return would_skip
 
 def setup(app):
-    app.connect("autodoc-process-signature", remove_default_value)
+    #app.connect("autodoc-process-signature", remove_default_value)
     app.connect("autodoc-skip-member", skip)
 
