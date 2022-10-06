@@ -21,6 +21,7 @@ def cfmplot(
     ylabel:bool=True, 
     summary_statistics:bool=True,
     ax:typing.Union[None, plt.axes]=None,
+    **kwargs,
     ) -> plt.axes:
     '''
     Draw a confusion matrix plot from a numpy array.
@@ -106,6 +107,10 @@ def cfmplot(
         otherwise use the currently-active Axes. 
         Defaults to :code:`None`.
     
+    - kwargs:
+        All other keyword arguments are passed to 
+        :code:`sns.heatmap`.
+    
     
     
     Returns
@@ -155,6 +160,7 @@ def cfmplot(
         xticklabels=categories,
         yticklabels=categories,
         ax=ax,
+        **kwargs,
         )
 
     if xlabel:
