@@ -16,7 +16,6 @@ def cfmplot(
     cfm:np.ndarray, 
     cbar:bool=True, 
     color:str='Blues', 
-    categories:typing.List[str]='auto', 
     xlabel:bool=True, 
     ylabel:bool=True, 
     summary_statistics:bool=True,
@@ -85,10 +84,6 @@ def cfmplot(
         The cmap that can be used for colors. 
         Defaults to :code:`'Blues'`.
     
-    - categories: typing.List[str], optional:
-        The categories in the predicted and true axes. 
-        Defaults to :code:`'auto'`.
-    
     - xlabel: bool, optional:
         whether to include a label on the x axis.
         Defaults to :code:`True`.
@@ -144,8 +139,14 @@ def cfmplot(
             precision = cfm[1,1] / sum(cfm[:,1])
             recall    = cfm[1,1] / sum(cfm[1,:])
             f1_score  = 2*precision*recall / (precision + recall)
-            stats_text = "\n\nAccuracy={:0.3f}\nPrecision={:0.3f}\nRecall={:0.3f}\nF1 Score={:0.3f}".format(
-                accuracy,precision,recall,f1_score)
+            stats_text = ("\n\nAccuracy={:0.3f}\nPrecision={:0.3f}\nRecall={:0.3f}\nF1 Score={:0.3f}"
+                .format(
+                    accuracy,
+                    precision,
+                    recall,
+                    f1_score
+                    )
+                )
         else:
             stats_text = "\n\nAccuracy={:0.3f}".format(accuracy)
     else:
@@ -157,8 +158,6 @@ def cfmplot(
         fmt="",
         cmap=color,
         cbar=cbar,
-        xticklabels=categories,
-        yticklabels=categories,
         ax=ax,
         **kwargs,
         )
