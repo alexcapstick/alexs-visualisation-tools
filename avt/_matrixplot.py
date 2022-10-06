@@ -117,8 +117,6 @@ def cfmplot(
     
     '''
 
-    assert len(cfm.shape) == 2, "Please ensure the confusion matrix is 2D."
-
     if ax is None:
         ax = plt.gca()
 

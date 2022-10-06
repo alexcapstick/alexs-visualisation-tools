@@ -10,7 +10,7 @@ All of these functions can be loaded in the following way::
 
 
 
-Catplots
+Catplot
 ------------
 
 Here is the documentation for the catplot functionality.
@@ -32,6 +32,21 @@ Here is the documentation for the lineplot functionality.
 
 
 .. automodule:: avt._lineplot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+
+
+
+Matrixplot
+------------
+
+Here is the documentation for the matrixplot functionality.
+
+
+.. automodule:: avt._matrixplot
    :members:
    :undoc-members:
    :show-inheritance:

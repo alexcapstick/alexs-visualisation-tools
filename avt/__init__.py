@@ -2,7 +2,7 @@ from .__version__ import __version__, __author__, __doc__, __title__, __copyrigh
 
 from ._catplot import clockplot, bar_labels, timefreqheatmap
 from ._lineplot import stackplot
-from ._matrix import cfmplot
+from ._matrixplot import cfmplot
 
 
 __all__ =[
