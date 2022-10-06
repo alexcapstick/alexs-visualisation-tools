@@ -1,3 +1,11 @@
+'''
+This module includes functions for generating categorical graphs.
+
+Examples can be found here: 
+https://github.com/alexcapstick/alexs-visualisation-tools/blob/main/examples/catplot.ipynb
+
+'''
+
 import pandas as pd
 import numpy as np
 import matplotlib.colors as mcs
@@ -523,7 +531,7 @@ def timefreqheatmap(
     y = 'count'
 
     if ax is None:
-        fig, ax = plt.subplots(1,1, figsize=(8,8))
+        ax = plt.gca()
 
     # getting array of counts
     groupby_list=[x, date_col]

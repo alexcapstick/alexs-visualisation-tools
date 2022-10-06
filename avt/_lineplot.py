@@ -1,3 +1,11 @@
+'''
+This module includes functions for generating continuous graphs.
+
+Examples can be found here: 
+https://github.com/alexcapstick/alexs-visualisation-tools/blob/main/examples/lineplot.ipynb
+
+'''
+
 import numpy as np
 import pandas as pd
 import typing
@@ -134,7 +142,7 @@ def stackplot(
 
 
     if ax is None:
-        fig, ax = plt.subplots(1,1)
+        ax = plt.gca()
 
 
 
