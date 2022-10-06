@@ -26,7 +26,7 @@ def cfmplot(
     Draw a confusion matrix plot from a numpy array.
     
     This function was based on code from 
-    :code:`https://github.com/DTrimarchi10/confusion_matrix/blob/master/cfm_matrix.py`.
+    https://github.com/DTrimarchi10/confusion_matrix/blob/master/cfm_matrix.py.
     
     
     Examples
