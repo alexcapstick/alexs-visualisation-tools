@@ -20,6 +20,8 @@ def cfmplot(
     ylabel:bool=True, 
     summary_statistics:bool=True,
     ax:typing.Union[None, plt.axes]=None,
+    annot_count=True,
+    annot_percentage=True,
     **kwargs,
     ) -> plt.axes:
     '''
@@ -102,6 +104,14 @@ def cfmplot(
         otherwise use the currently-active Axes. 
         Defaults to :code:`None`.
     
+    - annot_count:
+        Add the counts to the heatmap.
+        Defaults to :code:`True`.
+    
+    - annot_percentage:
+        Add the percentages to the heatmap.
+        Defaults to :code:`True`.
+    
     - kwargs:
         All other keyword arguments are passed to 
         :code:`sns.heatmap`.
@@ -124,9 +134,22 @@ def cfmplot(
         cfm = cfm.sum()
 
     group_percentages = ["{0:.2%}".format(value) for value in cfm.flatten()/np.sum(cfm)]
-    group_counts = ["{0:0.0f}\n".format(value) for value in cfm.flatten()]
+    group_counts = ["{0:0.0f}".format(value) for value in cfm.flatten()]
 
-    box_labels = [f"{counts}{percs}" for counts, percs in zip(group_counts, group_percentages)]
+
+    box_labels = ["" for _ in cfm.flatten()]
+    if annot_count:
+        box_labels = [
+            (f"{label}\n{counts}" if len(label) > 0 else f"{label}{counts}" )
+            for label, counts in zip(box_labels, group_counts)
+            ]
+
+    if annot_percentage:
+        box_labels = [
+            (f"{label}\n{perc}" if len(label) > 0 else f"{label}{perc}" )
+            for label, perc in zip(box_labels, group_percentages)
+            ]
+
     box_labels = np.asarray(box_labels).reshape(cfm.shape[0],cfm.shape[1])
 
     if summary_statistics:
