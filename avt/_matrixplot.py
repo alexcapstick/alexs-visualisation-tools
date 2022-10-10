@@ -140,13 +140,13 @@ def cfmplot(
     box_labels = ["" for _ in cfm.flatten()]
     if annot_count:
         box_labels = [
-            (f"{label}\n{counts}" if len(label) > 0 else f"{label}{counts}" )
+            f"{label}\n{counts}" if len(label) > 0 else f"{label}{counts}"
             for label, counts in zip(box_labels, group_counts)
             ]
 
     if annot_percentage:
         box_labels = [
-            (f"{label}\n{perc}" if len(label) > 0 else f"{label}{perc}" )
+            f"{label}\n{perc}" if len(label) > 0 else f"{label}{perc}"
             for label, perc in zip(box_labels, group_percentages)
             ]
 
