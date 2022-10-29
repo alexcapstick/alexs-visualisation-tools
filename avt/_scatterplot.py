@@ -189,17 +189,17 @@ def scatter3dplot(
     assert (type(size) == int) or (type(size) == str),\
         "Please ensure size is an int or str."
 
-    legend_title=""
+    markers = mm.MarkerStyle().filled_markers
+    
     if not hue is None:
-        legend_title += f"{hue}"
         if hue_order is None:
             hue_order = data[hue].unique()
-        hue_order_dict = {h: i for i,h in enumerate(hue_order)}
         if (type(cmap) == str) or (cmap is None):
             cmap = plt.get_cmap(cmap)
             cmap = [cmap(i) for i in np.linspace(0,1,len(hue_order))]
         elif isinstance(cmap, mcs.Colormap):
             cmap = [cmap(i) for i in np.linspace(0,1,len(hue_order))]
+        hue_dict = {h: cmap[i] for i,h in enumerate(hue_order)}
 
         data_list = [
             {'data': data.query(f"`{hue}`==@h"), 'hue':h} 
@@ -211,25 +211,23 @@ def scatter3dplot(
             cmap = [cmap(1)]
         elif isinstance(cmap, mcs.Colormap):
             cmap = [cmap(1)]
-        hue_order_dict = None
+        hue_dict = None
 
         data_list = [{'data':data, 'hue': None}]
 
     if not style is None:
-        if len(legend_title) > 0:
-            legend_title += f", {style}"
-        else:
-            legend_title += f"{style}"
         if style_order is None:
             style_order = data[style].unique()
-        style_order_dict = {s: i for i,s in enumerate(style_order)}
+
+        style_dict = {s: markers[i%len(markers)] for s, i in enumerate(style_order)}
+        
         data_list = [
             {'data': d['data'].query(f"`{style}`==@s"), 'hue': d['hue'], 'style': s}
             for d in data_list
             for s in style_order
             ]
     else:
-        style_order_dict = None
+        style_dict = None
         data_list = [
             {'data': d['data'], 'hue': d['hue'], 'style': None}
             for d in data_list
@@ -238,9 +236,6 @@ def scatter3dplot(
     if ax is None:
         _, ax = plt.subplots(1, 1, figsize=(10,10), subplot_kw={'projection': '3d'})
 
-    markers = mm.MarkerStyle().filled_markers
-
-    handles = []
     for data_dict in data_list:
         
         if len(data_dict['data']) == 0:
@@ -249,8 +244,7 @@ def scatter3dplot(
         label = ""
         if not hue_order is None:
             label += str(data_dict['hue'])
-            if not cmap is None:
-                kwargs['color'] = [cmap[::-1][hue_order_dict[data_dict['hue']]]]
+            kwargs['color'] = hue_dict[data_dict['hue']]
         else:
             kwargs['color'] = cmap[0]
 
@@ -259,12 +253,9 @@ def scatter3dplot(
                 label += ", " + str(data_dict['style'])
             else:
                 label += str(data_dict['style'])
-            kwargs['marker'] = markers[style_order_dict[data_dict['style']]%len(markers)]
+            kwargs['marker'] = style_dict[data_dict['style']]
         else:
             kwargs['marker'] = markers[0]
-
-        if not 'edgecolor' in kwargs:
-            kwargs['edgecolors'] = 'face'
 
         ax.scatter(
             xs=data_dict['data'][x], 
@@ -276,15 +267,27 @@ def scatter3dplot(
             **kwargs,
             )
 
-        handles.append(
-            mlines.Line2D(
-                [], [], color=kwargs['color'][0], marker=kwargs['marker'], linestyle='None',
-                markersize=10, label=label
-                )
-            )
-
     if legend:
-        ax.legend(handles=handles, title=legend_title)
+        if not hue_order is None:
+            handles_hue = [
+                mlines.Line2D(
+                    [], [], color=hue_dict[h], marker= markers[0], linestyle='None',
+                    markersize=10, label=h
+                    )
+                for h in hue_order
+                ]
+            leg1 = plt.legend(handles=handles_hue, title=hue, loc=1)
+            ax.add_artist(leg1)
+        if not style_order is None:
+            handles_style = [
+                mlines.Line2D(
+                    [], [], marker=style_dict[s], color='black', linestyle='None',
+                    markersize=10, label=s
+                    )
+                for s in style_order
+                ]
+            leg2 = plt.legend(handles=handles_style, title=style, loc=4)
+            ax.add_artist(leg2)
 
     ax.set_xlabel(x)
     ax.set_ylabel(y)
