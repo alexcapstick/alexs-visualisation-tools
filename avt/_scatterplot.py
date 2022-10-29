@@ -286,4 +286,8 @@ def scatter3dplot(
     if legend:
         ax.legend(handles=handles, title=legend_title)
 
+    ax.set_xlabel(x)
+    ax.set_ylabel(y)
+    ax.set_zlabel(z)
+
     return ax
