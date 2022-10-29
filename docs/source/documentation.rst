@@ -51,3 +51,17 @@ Here is the documentation for the matrixplot functionality.
    :undoc-members:
    :show-inheritance:
 
+
+
+
+
+Scatterplot
+------------
+
+Here is the documentation for the scatterplot functionality.
+
+
+.. automodule:: avt._scatterplot
+   :members:
+   :undoc-members:
+   :show-inheritance:
