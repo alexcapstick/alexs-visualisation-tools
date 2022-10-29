@@ -98,9 +98,6 @@ def scatter3dplot(
                 blit=False,
                 )
         >>> ax.figure.tight_layout()
-        >>> writergif = animation.PillowWriter(fps=10)
-        >>> ani.save('./figures/scatter3dplot.gif', writer=writergif, dpi=300)
-        >>> ani.save('../docs/source/figures/scatter3dplot.gif', writer=writergif, dpi=300)
 
     This will return the plot:
 
