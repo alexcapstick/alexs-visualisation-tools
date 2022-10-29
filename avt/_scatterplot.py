@@ -1,8 +1,18 @@
+'''
+This module includes functions for generating scatter graphs.
+
+Examples can be found here: 
+https://github.com/alexcapstick/alexs-visualisation-tools/blob/main/examples/scatterplot.ipynb
+
+'''
+
+
 import pandas as pd
 import numpy as np
 import matplotlib.markers as mm
 import matplotlib.colors as mcs
 import matplotlib.pyplot as plt
+import matplotlib.lines as mlines
 import seaborn as sns
 import typing
 
@@ -13,19 +23,167 @@ def scatter3dplot(
     y:typing.Union[str, None]=None, 
     z:typing.Union[str, None]=None, 
     hue:typing.Union[str, None]=None, 
-    size:typing.Union[str, None]=25, 
     style:typing.Union[str, None]=None,
+    size:typing.Union[str, int]=25, 
     ax:typing.Union[plt.axes, None]=None, 
     hue_order:typing.Union[typing.List[str], None]=None, 
     style_order:typing.Union[typing.List[str], None]=None, 
     cmap:typing.Union[mcs.Colormap, str, None]='RdBu_r',
     legend:bool=True,
     **kwargs,
-    ):
+    ) -> plt.axes:
     '''
+    This function plots a 3D scatterplot.
+
     Note: This currently only supports categorical hue values.
     Please also ensure that ax is a 3D projection axes.
+    
+    
+    Examples
+    ---------
 
+    .. code-block:: 
+
+        >>> import avt
+        >>> import numpy as np
+        >>> from sklearn.datasets import load_iris
+        >>> data_dict = load_iris(as_frame=True)
+        >>> data, target = data_dict['data'], data_dict['target']
+        >>> data['target'] = target
+        >>> data['random group'] = np.random.choice(2, size=len(data))
+        >>> ax = avt.scatter3dplot(
+            data=data,
+            x='sepal length (cm)',
+            y='sepal width (cm)',
+            z='petal length (cm)',
+            hue='target',
+            size='petal width (cm)',
+            style='random group',
+            )
+
+    This will return the plot:
+
+    .. image:: figures/scatter3dplot.png
+        :width: 600
+        :align: center
+        :alt: Alternative text
+
+    Alternatively, you can use an animation to 
+    better visualise the distribution:
+
+    .. code-block::
+
+        >>> import avt
+        >>> import numpy as np
+        >>> from sklearn.datasets import load_iris
+        >>> from matplotlib import animation
+        >>> data_dict = load_iris(as_frame=True)
+        >>> data, target = data_dict['data'], data_dict['target']
+        >>> data['target'] = target
+        >>> data['random group'] = np.random.choice(2, size=len(data))
+        >>> ax = avt.scatter3dplot(
+                data=data,
+                x='sepal length (cm)',
+                y='sepal width (cm)',
+                z='petal length (cm)',
+                hue='target',
+                size='petal width (cm)',
+                style='random group',
+                )
+        >>> ani = animation.FuncAnimation(
+                ax.figure, 
+                lambda x: ax.view_init(30,x), 
+                frames=np.linspace(1,360,90), 
+                interval=1, 
+                blit=False,
+                )
+        >>> ax.figure.tight_layout()
+        >>> writergif = animation.PillowWriter(fps=10)
+        >>> ani.save('./figures/scatter3dplot.gif', writer=writergif, dpi=300)
+        >>> ani.save('../docs/source/figures/scatter3dplot.gif', writer=writergif, dpi=300)
+
+    This will return the plot:
+
+    .. image:: figures/scatter3dplot.gif
+        :width: 600
+        :align: center
+        :alt: Alternative text
+
+    
+    Arguments
+    ---------
+    
+    - data: pd.DataFrame: 
+        The data.
+    
+    - x: typing.Union[str, None], optional:
+        The column name containing the x values. 
+        Defaults to :code:`None`.
+    
+    - y: typing.Union[str, None], optional:
+        The column containing the  y values. 
+        Defaults to :code:`None`.
+    
+    - z: typing.Union[str, None], optional:
+        The column containing the  z values. 
+        Defaults to :code:`None`.
+    
+    - hue: typing.Union[str, None], optional:
+        Semantic variable that is mapped to determine 
+        the color of plot elements.
+        Defaults to :code:`None`.
+    
+    - style: typing.Union[str, None], optional:
+        Semantic variable that is mapped to determine 
+        the shape of plot elements.
+        Defaults to :code:`None`.
+    
+    - size: typing.Union[str, int], optional:
+        Semantic variable that is mapped to determine 
+        the size of the plot elements. If :code:`str` 
+        then the sizes are determined by the column
+        values. If :code:`int` then this will be
+        used as the size.
+        Defaults to :code:`None`.
+    
+    - ax: typing.Union[plt.axes, None], optional:
+        A matplotlib axes that the plot can be drawn on. 
+        Defaults to :code:`None`.
+    
+    - hue_order: typing.Union[typing.List[str], None], optional:
+        The order of the hue and legend. 
+        Defaults to :code:`None`.
+    
+    - style_order: typing.Union[typing.List[str], None], optional:
+        The order of the style and legend. 
+        Defaults to :code:`None`.
+    
+    - cmap: typing.Union[mcs.Colormap, str, None], optional:
+        The colours of the plot. If a string is passed,
+        this will be used to colour all of the stacked bars.
+        If a cmap is passed, then this is used. 
+        If :code:`None`, then matplotlib handles
+        the colours. 
+        Defaults to :code:`None`.
+    
+    - legend: bool, optional:
+        Whether to plot a legend. 
+        Defaults to :code:`True`.
+    
+    - kwargs:
+        Any other keyword arguments are
+        passed to :code:`plt.scatter`. From here,
+        you can change a variety of the bar
+        attributes.
+    
+    
+    Returns
+    --------
+    
+    - out: plt.axes: 
+        The axes containing the plot.
+    
+    
     '''
 
     assert (not x is None) and (not y is None) and (not z is None),\
@@ -85,7 +243,12 @@ def scatter3dplot(
 
     markers = mm.MarkerStyle().filled_markers
 
+    handles = []
     for data_dict in data_list:
+        
+        if len(data_dict['data']) == 0:
+            continue
+        
         label = ""
         if not hue_order is None:
             label += str(data_dict['hue'])
@@ -111,11 +274,19 @@ def scatter3dplot(
             zs=data_dict['data'][z],
             ys=data_dict['data'][y], 
             label=label,
-            s=data_dict['data'][size] if type(size) == str else size,
+            s=50*(data_dict['data'][size])/(np.max(data_dict['data'][size].values)) \
+                if type(size) == str else size,
             **kwargs,
             )
 
+        handles.append(
+            mlines.Line2D(
+                [], [], color=kwargs['color'][0], marker=kwargs['marker'], linestyle='None',
+                markersize=10, label=label
+                )
+            )
+
     if legend:
-        ax.legend(title=legend_title)
+        ax.legend(handles=handles, title=legend_title)
 
     return ax
