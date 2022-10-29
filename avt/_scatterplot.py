@@ -52,14 +52,14 @@ def scatter3dplot(
         >>> data['target'] = target
         >>> data['random group'] = np.random.choice(2, size=len(data))
         >>> ax = avt.scatter3dplot(
-            data=data,
-            x='sepal length (cm)',
-            y='sepal width (cm)',
-            z='petal length (cm)',
-            hue='target',
-            size='petal width (cm)',
-            style='random group',
-            )
+                data=data,
+                x='sepal length (cm)',
+                y='sepal width (cm)',
+                z='petal length (cm)',
+                hue='target',
+                size='petal width (cm)',
+                style='random group',
+                )
 
     This will return the plot:
 
