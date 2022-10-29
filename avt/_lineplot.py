@@ -5,13 +5,13 @@ Examples can be found here:
 https://github.com/alexcapstick/alexs-visualisation-tools/blob/main/examples/lineplot.ipynb
 
 '''
-
 import numpy as np
 import pandas as pd
 import typing
-
 import matplotlib.colors as mcs
 import matplotlib.pyplot as plt
+from ._utils import interpolate_nans
+
 
 def stackplot(
     data:pd.DataFrame, 
@@ -22,10 +22,12 @@ def stackplot(
     hue_order:typing.Union[typing.List[str], None]=None, 
     cmap:typing.Union[mcs.Colormap, str, None]=None,
     legend:bool=True,
+    cumulative:bool=False,
     **kwargs,
     ):
     '''
-    This function plots a stacked continuous graph.
+    This function plots a stacked continuous graph. The 
+    missing values are interpolated for all x values.
     
     
     
@@ -35,7 +37,6 @@ def stackplot(
     .. code-block:: 
 
         >>> import avt
-
         >>> import seaborn as sns
         >>> import pandas as pd
         >>> flights = sns.load_dataset('flights')
@@ -47,8 +48,6 @@ def stackplot(
         :width: 600
         :align: center
         :alt: Alternative text
-
-
 
     
     Arguments
@@ -91,6 +90,12 @@ def stackplot(
         Whether to plot a legend. 
         Defaults to :code:`True`.
     
+    - cumulative: bool, optional:
+        If :code:`True`, then the cumulative
+        values will be plotted, rather than 
+        the raw values.
+        Defaults to :code:`False`.
+
     - kwargs:
         Any other keyword arguments are
         passed to :code:`plt.fill_between`. From here,
@@ -107,6 +112,8 @@ def stackplot(
     
     '''
 
+    data = data.sort_values(x)
+
     if not hue is None:
         if hue_order is None:
             hue_order = data[hue].unique()
@@ -116,6 +123,24 @@ def stackplot(
             cmap = [cmap(i) for i in np.linspace(0,1,len(hue_order))]
         elif isinstance(cmap, mcs.Colormap):
             cmap = [cmap(i) for i in np.linspace(0,1,len(hue_order))]
+
+        data = (data
+            [[x, y, hue]]
+            .pivot_table(index=x, columns=hue, values=y)
+            .apply(interpolate_nans, axis=0)
+            .reset_index()
+            .melt(id_vars=x, var_name=hue, value_name=y)
+            .reset_index()
+            )
+
+        if cumulative:
+            data = (data
+                .groupby(by=[hue, x])
+                .sum()
+                .groupby(level=0)
+                .cumsum()
+                .reset_index()
+                )
 
         y_plot = np.vstack(
             [
@@ -139,6 +164,8 @@ def stackplot(
         hue_order = [x]
         y_plot = data[y].values.reshape(1,-1)
         x_plot = data[x].values.reshape(1,-1)
+        if cumulative:
+            y_plot = np.cumsum(y_plot, axis=1)
 
 
     if ax is None:
