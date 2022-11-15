@@ -10,6 +10,18 @@ All of these functions can be loaded in the following way::
 
 
 
+Boxplot
+------------
+
+Here is the documentation for the boxplot functionality.
+
+
+.. automodule:: avt._boxplot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 Catplot
 ------------
 
@@ -53,6 +65,18 @@ Here is the documentation for the matrixplot functionality.
 
 
 
+Save Fig
+------------
+
+Here is the documentation for the savefig functionality.
+
+
+.. automodule:: avt._save_fig
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 
 
 Scatterplot
@@ -62,6 +86,19 @@ Here is the documentation for the scatterplot functionality.
 
 
 .. automodule:: avt._scatterplot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+
+Theme
+------------
+
+Here is the documentation for the theme functionality.
+
+
+.. automodule:: avt._theme
    :members:
    :undoc-members:
    :show-inheritance:
