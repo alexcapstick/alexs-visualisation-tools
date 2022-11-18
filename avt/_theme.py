@@ -5,20 +5,92 @@ import matplotlib
 import numpy as np
 from cycler import cycler
 
+# colours
+tol_muted = [
+    '#332288', 
+    '#88CCEE', 
+    '#44AA99', 
+    '#117733', 
+    '#999933', 
+    '#DDCC77', 
+    '#CC6677', 
+    '#882255',
+    '#AA4499'
+    ]
+
+ibm = [
+    "#648fff",
+    "#fe6100",
+    "#dc267f", 
+    "#785ef0",
+    "#ffb000",
+    ]
+
+
+# colour map
+def set_colour_map(colours:list=tol_muted):
+    '''
+    Sets the default colour map for all plots.
+    
+    
+    
+    Examples
+    ---------
+    
+    The following sets the colourmap to :code:`tol_muted`:
+
+    .. code-block::
+    
+        >>> set_colour_map(colours=avt.tol_muted)
+    
+    
+    Arguments
+    ---------
+    
+    - colours: list, optional:
+        Format that is accepted by 
+        :code:`cycler.cycler`. 
+        Defaults to :code:`tol_muted`.
+    
+    '''
+    custom_params = {"axes.prop_cycle": cycler(color=colours)}
+    matplotlib.rcParams.update(**custom_params)
+
+# context functions
+@contextlib.contextmanager
+def temp_colour_map(colours=tol_muted):
+    '''
+    Temporarily sets the default colour map for all plots.
+    
+
+    Examples
+    ---------
+    
+    The following sets the colourmap to :code:`tol_muted` for
+    the plotting done within the context:
+
+    .. code-block::
+    
+        >>> with set_colour_map(colours=avt.tol_muted):
+        ...     plt.plot(x,y)
+    
+    
+    Arguments
+    ---------
+    
+    - colours: list, optional:
+        Format that is accepted by 
+        :code:`cycler.cycler`. 
+        Defaults to :code:`tol_muted`.
+    
+    '''
+    set_colour_map(colours=colours)
+
 
 @contextlib.contextmanager
-def paper_theme():
+def paper_theme(colours=ibm):
     with matplotlib.rc_context():
         plt.style.use('seaborn-poster')
-    
-        colours = [
-            "#648fff",
-            "#fe6100",
-            "#dc267f", 
-            "#785ef0",
-            "#ffb000",
-            ]
-
         custom_params = {
             
             "axes.spines.right": False, 

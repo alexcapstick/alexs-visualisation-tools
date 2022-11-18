@@ -6,7 +6,7 @@ from ._lineplot import stackplot
 from ._matrixplot import cfmplot
 from ._save_fig import save_fig
 from ._scatterplot import scatter3dplot
-from ._theme import paper_theme
+from ._theme import paper_theme, tol_muted, ibm, set_colour_map, temp_colour_map
 
 
 __all__ =[
@@ -19,4 +19,8 @@ __all__ =[
     'save_fig',
     'scatter3dplot',
     'paper_theme',
+    'tol_muted',
+    'ibm',
+    'set_colour_map',
+    'temp_colour_map',
 ]
