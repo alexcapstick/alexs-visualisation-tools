@@ -733,6 +733,12 @@ def waterfallplot(
     This function allows you to draw a waterfall plot
     with a dataframe.
 
+
+
+
+    Examples
+    ---------
+
     You can build plots like:
 
     .. image:: figures/waterfallplot.png
