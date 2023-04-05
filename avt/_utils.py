@@ -33,3 +33,12 @@ def interpolate_nans(x:pd.Series):
         )
     res = pd.Series(data=res, index=index)
     return res
+
+
+
+def update_with_defaults(kwargs_dict, default_dict):
+    kwargs_dict = kwargs_dict.copy()
+    for key, value in default_dict.items():
+        if key not in kwargs_dict:
+            kwargs_dict[key] = value
+    return kwargs_dict

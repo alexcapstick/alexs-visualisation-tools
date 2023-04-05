@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 import seaborn as sns
 import typing
+from ._utils import update_with_defaults
 
 
 def clockplot(
@@ -707,3 +708,282 @@ def bar_labels(
             )
 
     return fig
+
+
+def waterfallplot(
+    data: pd.DataFrame = None,
+    x: str = None,
+    y: str = None,
+    hue: str = None,
+    order: typing.List[str] = None,
+    base: float = None,
+    horizontal: bool = False,
+    estimator: typing.Union[str, typing.Callable] = "sum",
+    cmap: str = None,
+    positive_colour: str = "#648fff",
+    negative_colour: str = "#fe6100",
+    width: float = 0.8,
+    ax: plt.Axes = None,
+    arrow_kwargs: typing.Dict[str, typing.Any] = {},
+    bar_kwargs: typing.Dict[str, typing.Any] = {},
+    bar_label_kwargs: typing.Dict[str, typing.Any] = {},
+):
+
+    """
+    This function allows you to draw a waterfall plot
+    with a dataframe.
+
+    You can build plots like:
+
+    .. image:: figures/waterfallplot.png
+        :width: 600
+        :align: center
+        :alt: Water fall plot
+
+    To see the code producing this plot,
+    view the examples :code:`ipynb` file.
+
+
+    Arguments
+    ---------
+
+    - data: pd.DataFrame:
+        The dataframe containing the data to plot.
+        It must have at least two columns, one for the
+        x-axis and one for the y-axis.
+        Defaults to :code:`None`.
+
+    - x: str:
+        The name of the column in the dataframe that
+        will be used for the x-axis.
+        Defaults to :code:`None`.
+
+    - y: str:
+        The name of the column in the dataframe that
+        will be used for the y-axis.
+        Defaults to :code:`None`.
+
+    - hue: str:
+        The name of the column in the dataframe that
+        will be used to colour the bars. This is not
+        currently implemented.
+        Defaults to :code:`None`.
+
+    - order: list:
+        The order in which the bars should be plotted.
+        This is used for the categorical axis.
+        Defaults to :code:`None`.
+
+    - base: float:
+        This is the value of the base of the waterfall
+        plot. If not provided, a line will be drawn here and
+        the first waterfall bar will be drawn from it.
+        Defaults to :code:`None`.
+
+    - horizontal: bool:
+        Whether to plot the waterfall horizontally.
+        Defaults to :code:`False`.
+
+    - estimator: typing.Union[str, typing.Callable]:
+        The statistical function to use to aggregate the values.
+        Defaults to :code:`'sum'`.
+
+    - cmap: str:
+        The name of the colourmap to use for the bars.
+        If not provided, the bars will be coloured
+        based on whether the value is positive or
+        negative.
+        Defaults to :code:`None`.
+
+    - positive_colour: str:
+        The colour to use for positive values.
+        Defaults to :code:`'#648fff'`.
+
+    - negative_colour: str:
+        The colour to use for negative values.
+        Defaults to :code:`'#fe6100'`.
+
+    - width: float:
+        The width of the bars.
+        Defaults to :code:`0.8`.
+
+    - ax: matplotlib.axes.Axes:
+        The axes to plot on. If not provided, a new
+        figure and axes will be created.
+        Defaults to :code:`None`.
+
+    - arrow_kwargs: dict:
+        A dictionary of keyword arguments to pass to
+        the :code:`matplotlib.axes.Axes.arrow` function.
+        Defaults to :code:`{}`.
+
+    - bar_kwargs: dict:
+        A dictionary of keyword arguments to pass to
+        the :code:`matplotlib.axes.Axes.bar` function that
+        the arrows are drawn upon.
+        Defaults to :code:`{}`.
+
+    - bar_label_kwargs: dict:
+        A dictionary of keyword arguments to pass to
+        the :code:`matplotlib.axes.Axes.bar_label` function
+        that is overlayed on the arrows.
+        Defaults to :code:`{}`.
+
+    """
+
+    if data is None:
+        raise ValueError("data must be provided.")
+
+    if hue is not None:
+        raise NotImplementedError("hue not currently implemented.")
+
+    if ax is None:
+        fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+
+    categories = y if horizontal else x
+    values = x if horizontal else y
+    unique_categories = data[categories].unique()
+    order = unique_categories if order is None else order
+    bar_labels, bar_values = (
+        data.groupby(categories)[values]
+        .agg(estimator)
+        .loc[order]
+        .reset_index()
+        .values.T
+    )
+
+    # if not all of the categories are in the order
+    categories_not_in_order = unique_categories[~np.isin(unique_categories, order)]
+    if len(categories_not_in_order) > 0:
+        bar_labels_other, bar_values_other = (
+            data.groupby(categories)[values]
+            .agg(estimator)
+            .loc[categories_not_in_order]
+            .reset_index()
+            .values.T
+        )
+        bar_labels_other = ["Other"]
+        bar_values_other = [bar_values_other.sum()]
+        bar_labels = np.concatenate([bar_labels, bar_labels_other])
+        bar_values = np.concatenate([bar_values, bar_values_other])
+
+    pos_bar = np.arange(len(bar_labels))
+    base = base if base is not None else bar_values[0]
+    height = bar_values
+    bottom = np.concatenate([np.array([base]), base + np.cumsum(bar_values)])[:-1]
+    ends = bottom + bar_values
+
+    if horizontal:
+        height = height[::-1]
+        bottom = bottom[::-1]
+        ends = ends[::-1]
+        bar_labels = bar_labels[::-1]
+
+    if horizontal:
+        bars = ax.barh(
+            y=pos_bar, height=width, left=bottom, alpha=0, width=height, **bar_kwargs
+        )
+    else:
+        bars = ax.bar(
+            pos_bar, height=height, bottom=bottom, alpha=0, width=width, **bar_kwargs
+        )
+
+    min_value = np.min([base, ends.min()])
+    max_value = np.max([base, ends.max()])
+
+    whole_range = max_value - min_value
+
+    if horizontal:
+
+        ax.set_xlim(
+            min_value - 0.1 * whole_range,
+            max_value + 0.1 * whole_range,
+        )
+    else:
+        ax.set_ylim(
+            min_value - 0.1 * whole_range,
+            max_value + 0.1 * whole_range,
+        )
+
+    bar_boxes = [rect.get_bbox().get_points() for rect in bars.patches]
+
+    if cmap is not None:
+        cmap = sns.color_palette(cmap, len(pos_bar))
+    else:
+        cmap = []
+        for bar_box in bar_boxes:
+            if horizontal:
+                if (bar_box[1, 0] - bar_box[0, 0]) > 0:
+                    cmap.append(positive_colour)
+                else:
+                    cmap.append(negative_colour)
+            else:
+                if (bar_box[1, 1] - bar_box[0, 1]) > 0:
+                    cmap.append(positive_colour)
+                else:
+                    cmap.append(negative_colour)
+
+    arrow_kwargs = update_with_defaults(
+        arrow_kwargs,
+        {
+            "head_width": width,
+            "length_includes_head": True,
+            "alpha": 0.75,
+            "linewidth": 0,
+            "width": width,
+            "head_length": whole_range * 0.025,
+        },
+    )
+
+    for nb, bar_box in enumerate(bar_boxes):
+        if horizontal:
+            y_bar = pos_bar[nb]
+            x_bar = bar_box[0, 0]
+            dx_bar = bar_box[1, 0] - bar_box[0, 0]
+            dy_bar = 0
+        else:
+            x_bar = pos_bar[nb]
+            y_bar = bar_box[0, 1]
+            dy_bar = bar_box[1, 1] - bar_box[0, 1]
+            dx_bar = 0
+
+        ax.arrow(
+            x=x_bar,
+            y=y_bar,
+            dy=dy_bar,
+            dx=dx_bar,
+            color=cmap[nb] if cmap is not None else cmap,
+            **arrow_kwargs,
+        )
+
+    # if horizontal:
+    #    ax.axvline(base, color='black', linestyle='--', linewidth=2, zorder=0)
+    # else:
+    #    ax.axhline(base, color='black', linestyle='--', linewidth=2, zorder=0)
+
+    bar_label_kwargs = update_with_defaults(
+        bar_label_kwargs,
+        {
+            "fmt": "%.2f",
+            "label_type": "center",
+            "padding": 0,
+            "fontsize": 16,
+        },
+    )
+
+    ax.bar_label(
+        bars,
+        **bar_label_kwargs,
+    )
+
+    if horizontal:
+        ax.set_yticks(pos_bar)
+        ax.set_yticklabels(bar_labels)
+    else:
+        ax.set_xticks(pos_bar)
+        ax.set_xticklabels(bar_labels)
+
+    ax.set_ylabel(y)
+    ax.set_xlabel(x)
+
+    return ax
