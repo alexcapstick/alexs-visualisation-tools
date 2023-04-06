@@ -620,109 +620,21 @@ def timefreqheatmap(
     return ax
 
 
-def bar_labels(
-    fig: plt.figure,
-    labels: typing.Union[None, typing.List[str]] = None,
-    label_format: str = "{height}",
-    **kwargs,
-) -> plt.figure:
-    """
-    Adds labels to bars in graph.
-
-
-    Examples
-    ---------
-
-    The following will add label heights and format
-    them as a percentage:
-
-    .. code-block::
-
-        >>> g = sns.catplot(...)
-        >>> avt.bar_labels(g.figure, label_format='{height:.1%}')
-
-
-    The following will add the labels :code:`'bar1'` and :code:`'bar2'`
-    to the bars in the first axes and :code:`'bar3'`
-    and :code:`'bar4'` to the bars in the second axes.
-
-    .. code-block::
-
-        >>> g = sns.catplot(...)
-        >>> labels = [
-                ['bar1','bar2'], # first axis
-                ['bar3', 'bar4'] # second axis
-                ]
-        >>> avt.bar_labels(g.figure, labels=labels)
-
-
-    Arguments
-    ---------
-
-    - fig: plt.figure:
-        The matplotlib figure to add bar labels to.
-
-    - labels: typing.List[str]:
-        Labels to add to the bars.
-        This should be a list of lists, in which
-        the outer list acts over the axes in
-        the plot and the inner list is the labels
-        for the bars. If :code:`None`, then the bar labels
-        will be the heights of the bars.
-        Defaults to :code:`None`.
-
-    - label_format: str:
-        The format of the bar labels, used only
-        if :code:`labels=None`. This needs to contain
-        the word :code:`height`, in :code:`{}`, where the bar
-        heights will be placed.
-        Defaults to :code:`'{height}'`.
-
-    - kwargs: :
-        Keyword arguments passed to :code:`plt.bar_label`.
-        Examples could be :code:`rotation`, :code:`padding`,
-        :code:`label_type`, and :code:`fontsize`.
-
-
-    Returns
-    --------
-
-    - out: plt.figure:
-        Matplotlib figure, containing the added
-        bar labels.
-
-
-    """
-
-    for ax in fig.axes:
-        for nc, c in enumerate(ax.containers):
-            if labels is None:
-                heights = [v.get_height() for v in c]
-                l = [label_format.format(height=height) for height in heights]
-            else:
-                l = labels[nc]
-            ax.bar_label(
-                c,
-                labels=l,
-                **kwargs,
-            )
-
-    return fig
-
-
 def waterfallplot(
     data: pd.DataFrame = None,
     x: str = None,
     y: str = None,
     hue: str = None,
     order: typing.List[str] = None,
-    base: float = None,
-    horizontal: bool = False,
+    base: float = 0,
+    orient: str = "h",
     estimator: typing.Union[str, typing.Callable] = "sum",
     cmap: str = None,
+    alpha: bool = 0.75,
     positive_colour: str = "#648fff",
     negative_colour: str = "#fe6100",
     width: float = 0.8,
+    bar_label: bool = True,
     ax: plt.Axes = None,
     arrow_kwargs: typing.Dict[str, typing.Any] = {},
     bar_kwargs: typing.Dict[str, typing.Any] = {},
@@ -786,13 +698,18 @@ def waterfallplot(
         the first waterfall bar will be drawn from it.
         Defaults to :code:`None`.
 
-    - horizontal: bool:
-        Whether to plot the waterfall horizontally.
-        Defaults to :code:`False`.
+    - orient: bool:
+        Whether to plot the waterfall horizontally or vertically.
+        Options are :code:`'h'` or :code:`'v'`.
+        Defaults to :code:`h`.
 
     - estimator: typing.Union[str, typing.Callable]:
         The statistical function to use to aggregate the values.
         Defaults to :code:`'sum'`.
+
+    - alpha: str:
+        The alpha value to use for the arrows.
+        Defaults to :code:`0.75`.
 
     - cmap: str:
         The name of the colourmap to use for the bars.
@@ -812,6 +729,10 @@ def waterfallplot(
     - width: float:
         The width of the bars.
         Defaults to :code:`0.8`.
+
+    - bar_label: bool:
+        Whether to add labels to the bars.
+        Defaults to :code:`True`.
 
     - ax: matplotlib.axes.Axes:
         The axes to plot on. If not provided, a new
@@ -846,6 +767,8 @@ def waterfallplot(
     if ax is None:
         fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
+    horizontal = orient == "h"
+
     categories = y if horizontal else x
     values = x if horizontal else y
     unique_categories = data[categories].unique()
@@ -874,7 +797,6 @@ def waterfallplot(
         bar_values = np.concatenate([bar_values, bar_values_other])
 
     pos_bar = np.arange(len(bar_labels))
-    base = base if base is not None else bar_values[0]
     height = bar_values
     bottom = np.concatenate([np.array([base]), base + np.cumsum(bar_values)])[:-1]
     ends = bottom + bar_values
@@ -934,7 +856,7 @@ def waterfallplot(
         {
             "head_width": width,
             "length_includes_head": True,
-            "alpha": 0.75,
+            "alpha": alpha,
             "linewidth": 0,
             "width": width,
             "head_length": whole_range * 0.025,
@@ -977,10 +899,11 @@ def waterfallplot(
         },
     )
 
-    ax.bar_label(
-        bars,
-        **bar_label_kwargs,
-    )
+    if bar_label:
+        ax.bar_label(
+            bars,
+            **bar_label_kwargs,
+        )
 
     if horizontal:
         ax.set_yticks(pos_bar)
@@ -992,4 +915,106 @@ def waterfallplot(
     ax.set_ylabel(y)
     ax.set_xlabel(x)
 
+    ax.grid(False, axis="y" if horizontal else "x")
+
     return ax
+
+
+def bar_labels(
+    obj: plt.figure,
+    labels: typing.Union[None, typing.List[str]] = None,
+    label_format: str = "{height}",
+    **kwargs,
+) -> plt.figure:
+    """
+    Adds labels to bars in graph.
+
+
+    Examples
+    ---------
+
+    The following will add label heights and format
+    them as a percentage:
+
+    .. code-block::
+
+        >>> g = sns.catplot(...)
+        >>> avt.bar_labels(g.figure, label_format='{height:.1%}')
+
+
+    The following will add the labels :code:`'bar1'` and :code:`'bar2'`
+    to the bars in the first axes and :code:`'bar3'`
+    and :code:`'bar4'` to the bars in the second axes.
+
+    .. code-block::
+
+        >>> g = sns.catplot(...)
+        >>> labels = [
+                ['bar1','bar2'], # first axis
+                ['bar3', 'bar4'] # second axis
+                ]
+        >>> avt.bar_labels(g.figure, labels=labels)
+
+
+    Arguments
+    ---------
+
+    - obj: plt.figure or plt.Axes:
+        The matplotlib figure or axes to add bar labels to.
+
+    - labels: typing.List[str]:
+        Labels to add to the bars.
+        This should be a list of lists, in which
+        the outer list acts over the axes in
+        the plot and the inner list is the labels
+        for the bars. If :code:`None`, then the bar labels
+        will be the heights of the bars.
+        Defaults to :code:`None`.
+
+    - label_format: str:
+        The format of the bar labels, used only
+        if :code:`labels=None`. This needs to contain
+        the word :code:`height`, in :code:`{}`, where the bar
+        heights will be placed.
+        Defaults to :code:`'{height}'`.
+
+    - kwargs: :
+        Keyword arguments passed to :code:`plt.bar_label`.
+        Examples could be :code:`rotation`, :code:`padding`,
+        :code:`label_type`, and :code:`fontsize`.
+
+
+    Returns
+    --------
+
+    - out: plt.figure:
+        Matplotlib figure, containing the added
+        bar labels.
+
+
+    """
+
+    if isinstance(obj, plt.Axes):
+        axes_list = [obj]
+
+    elif isinstance(obj, plt.figure):
+        axes_list = obj.axes
+
+    else:
+        raise TypeError("obj must be a matplotlib figure or axes")
+
+    for ax in axes_list:
+        for nc, c in enumerate(ax.containers):
+            if labels is None:
+                # heights = [v.get_height() for v in c]
+                # l = [label_format.format(height=height) for height in heights]
+                l = None
+            else:
+                l = labels[nc]
+            ax.bar_label(
+                c,
+                labels=l,
+                **kwargs,
+            )
+
+    return obj
