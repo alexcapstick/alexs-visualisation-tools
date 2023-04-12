@@ -976,6 +976,204 @@ def waterfallplot(
     return ax
 
 
+def radarplot(
+    data: pd.DataFrame = None,
+    x: str = None,
+    y: str = None,
+    hue: str = None,
+    order: typing.List[str] = None,
+    hue_order: typing.List[str] = None,
+    estimator: typing.Callable = np.mean,
+    fill: bool = True,
+    cmap: typing.Union[str, typing.List[str]] = None,
+    legend: bool = True,
+    ax: plt.Axes = None,
+    **kwargs,
+) -> plt.Axes:
+    """
+    This function allows you to create a radar
+    plot from a dataframe.
+
+
+    Examples
+    ---------
+
+    You can build plots like:
+
+    .. image:: figures/radarplot.png
+        :width: 600
+        :align: center
+        :alt: Radar Plot
+
+    To see the code producing this plot,
+    view the examples :code:`ipynb` file.
+
+
+
+    Arguments
+    ---------
+
+    - data: pd.DataFrame:
+        The dataframe containing the data to plot.
+        Defaults to :code:`None`.
+
+    - x: str:
+        The name of the column containing the
+        categories to plot.
+        Defaults to :code:`None`.
+
+    - y: str:
+        The name of the column containing the
+        values to plot.
+        Defaults to :code:`None`.
+
+    - hue: str:
+        The name of the column containing the
+        hues to plot.
+        Defaults to :code:`None`.
+
+    - order: list:
+        The order of the categories to plot.
+        Defaults to :code:`None`.
+
+    - hue_order: list:
+        The order of the hues to plot.
+        Defaults to :code:`None`.
+
+    - estimator: callable:
+        The function to use to aggregate the
+        values when plotting.
+        Defaults to :code:`np.mean`.
+
+    - fill: bool:
+        Whether to fill the area under the curve.
+        Defaults to :code:`True`.
+
+    - cmap: str or list:
+        The name of the colormap to use or a list
+        of colours to use.
+        Defaults to :code:`None`.
+
+    - legend: bool:
+        Whether to show the legend.
+        Defaults to :code:`True`.
+
+    - ax: plt.Axes:
+        The axes to plot on.
+        Defaults to :code:`None`.
+
+    - **kwargs:
+        Additional keyword arguments to pass to
+        :code:`plt.plot`.
+
+    Returns
+    ---------
+    - ax: plt.Axes:
+        The axes containing the plot.
+
+
+    """
+
+    groupby_cols = [hue, x] if hue is not None else [x]
+    all_cols = groupby_cols + [y]
+    data = data[all_cols].groupby(groupby_cols).mean().reset_index()
+
+    # number of categories to plot
+    variables = list(data[x].unique()) if order is None else order
+    variables_n = len(variables)
+
+    # setting the order of the variables around the circle
+    order = list(data[x].unique()) if order is None else order
+
+    # getting the hues, order and colours
+    if hue is not None:
+        hues = list(data[hue].unique())
+        hues = hues if hue_order is None else hue_order
+        variables_and_values = [
+            (
+                data.set_index(hue).loc[h].query(f"{x} in {order}")[x].values.tolist(),
+                data.set_index(hue).loc[h].query(f"{x} in {order}")[y].values.tolist(),
+            )
+            for h in hues
+        ]
+        if type(cmap) == str:
+            cmap = plt.get_cmap(cmap)
+            cmap = [cmap(i) for i in np.linspace(0, 1, len(hues))]
+        elif isinstance(cmap, mcs.Colormap):
+            cmap = [cmap(i) for i in np.linspace(0, 1, len(hues))]
+    else:
+
+        variables_and_values = [
+            (
+                data.query(f"{x} in {order}")[x].values.tolist(),
+                data.query(f"{x} in {order}")[y].values.tolist(),
+            )
+        ]
+
+        if type(cmap) == str:
+            cmap = plt.get_cmap(cmap)
+            cmap = [cmap(1)]
+        elif isinstance(cmap, mcs.Colormap):
+            cmap = [cmap(1)]
+
+    # angles for the plot
+    angles = [n / float(variables_n) * 2 * np.pi for n in range(variables_n)]
+    variable_angle_dict = {v: a for v, a in zip(variables, angles)}
+
+    # setting plotting area
+    if ax is None:
+        fig, ax = plt.subplots(1, 1, figsize=(6, 6), subplot_kw={"polar": True})
+
+    # place first cat on top of plot and set direction clockwise
+    ax.set_theta_offset(np.pi / 2)
+    ax.set_theta_direction(-1)
+
+    # Draw one axe per variable + add labels
+    ax.set_xticks(angles)
+    ax.set_xticklabels(variables)
+
+    # Draw ylabels
+    ax.set_rlabel_position(0)
+
+    # plotting
+    for nh, (variables_plot, values_plot) in enumerate(variables_and_values):
+        angles_plot = [variable_angle_dict[v] for v in variables_plot]
+        values_plot = [
+            v
+            for _, v in sorted(zip(angles_plot, values_plot), key=lambda pair: pair[0])
+        ]
+        angles_plot = sorted(angles_plot)
+
+        angles_plot += angles_plot[:1]
+        values_plot += values_plot[:1]
+
+        colour = (
+            cmap[nh] if cmap is not None else next(ax._get_lines.prop_cycler)["color"]
+        )
+
+        ax.plot(
+            angles_plot,
+            values_plot,
+            label=hues[nh] if hue is not None else None,
+            color=colour,
+            **kwargs,
+        )
+        # Fill area
+        if fill:
+            ax.fill(
+                angles_plot,
+                values_plot,
+                color=colour,
+                alpha=0.1,
+            )
+
+    if legend:
+        if hue is not None:
+            ax.legend(title=hue)
+
+    return ax
+
+
 def bar_labels(
     obj: plt.figure,
     labels: typing.Union[None, typing.List[str]] = None,

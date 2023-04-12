@@ -8,7 +8,7 @@ from .__version__ import (
 )
 
 from ._boxplot import boxplot
-from ._catplot import clockplot, bar_labels, timefreqheatmap, waterfallplot
+from ._catplot import clockplot, bar_labels, timefreqheatmap, waterfallplot, radarplot
 from ._lineplot import stackplot
 from ._matrixplot import cfmplot
 from ._save_fig import save_fig
@@ -23,6 +23,7 @@ __all__ = [
     "bar_labels",
     "timefreqheatmap",
     "waterfallplot",
+    "radarplot",
     "cfmplot",
     "save_fig",
     "scatter3dplot",
