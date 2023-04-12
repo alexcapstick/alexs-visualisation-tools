@@ -210,8 +210,10 @@ def parallelplot(
     bezier: bool = True,
     cmap: typing.Union[str, mcs.Colormap] = None,
     cbar: bool = False,
-    cbar_x:float=1.1,
+    cbar_x: float = 1.1,
     legend: bool = True,
+    cbar_kwargs: typing.Dict[str, typing.Any] = {},
+    legend_kwargs: typing.Dict[str, typing.Any] = {},
     ax=None,
     **kwargs,
 ) -> plt.Axes:
@@ -291,10 +293,20 @@ def parallelplot(
     - cbar: bool:
         Whether to add a colorbar.
         Defaults to :code:`False`.
-    
+
     - cbar_x: float:
         The x position of the colorbar.
         Defaults to :code:`1.1`.
+
+    - cbar_kwargs: typing.Dict[str, typing.Any]:
+        Additional keyword arguments to pass
+        to :code:`plt.colorbar`.
+        Defaults to :code:`{}`.
+
+    - legend_kwargs: typing.Dict[str, typing.Any]:
+        Additional keyword arguments to pass
+        to :code:`plt.legend`.
+        Defaults to :code:`{}`.
 
     - legend: bool:
         Whether to add a legend.
@@ -397,7 +409,7 @@ def parallelplot(
         ax.spines["top"].set_visible(False)
         ax.spines["bottom"].set_visible(False)
         ax.spines["right"].set_visible(True)
-        #ax.yaxis.set_major_locator(matplotlib.ticker.LinearLocator(nticks))
+        # ax.yaxis.set_major_locator(matplotlib.ticker.LinearLocator(nticks))
         # ax.set_yticks(np.linspace(ymins[i], ymaxs[i], 5, endpoint=True))
         if ax != host:
             ax.spines["left"].set_visible(False)
@@ -474,15 +486,13 @@ def parallelplot(
 
         # Remove the legend and add a colorbar
         # ax.get_legend().remove()
-        cbar = ax.figure.colorbar(sm, cax=cax)
+        cbar = ax.figure.colorbar(sm, cax=cax, **cbar_kwargs)
         cbar.outline.set_linewidth(1)
 
     if legend:
         if hue is not None:
             host.legend(
-                [legend_handles[h] for h in hues],
-                hues,
-                title=hue,
+                [legend_handles[h] for h in hues], hues, title=hue, **legend_kwargs
             )
 
     host.grid(False, axis="y")
