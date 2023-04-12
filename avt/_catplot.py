@@ -1076,7 +1076,7 @@ def radarplot(
 
     groupby_cols = [hue, x] if hue is not None else [x]
     all_cols = groupby_cols + [y]
-    data = data[all_cols].groupby(groupby_cols).mean().reset_index()
+    data = data[all_cols].groupby(groupby_cols).agg(estimator).reset_index()
 
     # number of categories to plot
     variables = list(data[x].unique()) if order is None else order
