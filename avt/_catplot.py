@@ -28,6 +28,7 @@ def clockplot(
     label_freq: typing.Union[str, None] = None,
     cmap: typing.Union[mcs.Colormap, str, None] = None,
     legend: bool = True,
+    label_kwargs: typing.Dict[str, typing.Any] = {},
     **kwargs,
 ):
     """
@@ -115,6 +116,11 @@ def clockplot(
     - legend: bool, optional:
         Whether to plot a legend.
         Defaults to :code:`True`.
+
+    - label_kwargs: typing.Dict[str, typing.Any], optional:
+        Keyword arguments to pass to the time labels.
+        These are passed to :code:`plt.text`.
+        Defaults to :code:`{}`.
 
     - kwargs:
         Any other keyword arguments are
@@ -231,8 +237,11 @@ def clockplot(
     ax.set_theta_zero_location("N")
     ax.set_theta_direction(-1)
 
-    # remove grid
-    ax.axis("off")
+    ax.axis("on")
+    ax.grid(True)
+    ax.xaxis.set_ticklabels([])
+    ax.yaxis.set_ticklabels([])
+    ax.spines.get("polar").set_visible(False)
 
     # scaling bar heights to max of 1
 
@@ -251,7 +260,7 @@ def clockplot(
     max_height = 1
 
     # Set the coordinate limits
-    lowerLimit = 5 * max_height / 8
+    lower_limit = 5 * max_height / 8
 
     # Compute the bar_width of each bar. In total we have 2*Pi = 360°
     bar_width = 2 * np.pi / bar_heights.shape[1]
@@ -270,7 +279,7 @@ def clockplot(
         ) * 2 * np.pi + bar_width * 0.5
 
     if not "bottom" in kwargs:
-        kwargs["bottom"] = lowerLimit
+        kwargs["bottom"] = lower_limit
 
     bars_list = []
     n_plots = 1 if hue_order is None else len(hue_order)
@@ -292,7 +301,7 @@ def clockplot(
         bars_list.append(bars)
 
     # little space between the bar and the label
-    labelPadding = 0.05
+    label_padding = 0.05
 
     if not hue is None:
         if legend:
@@ -302,6 +311,7 @@ def clockplot(
         if not label_format:
             return ax
         else:
+            labels_allowed = data["time"]
             labels = (pd.to_datetime(0) + data["time"]).unique()
     else:
         if not label_freq is None:
@@ -314,6 +324,18 @@ def clockplot(
     bars_ravel = [bars_list[0][-1]]
     bars_ravel.extend(bars_list[0])
     bars_ravel.append(bars_list[0][0])
+
+    ha_alignment = label_kwargs.pop("ha", None)
+    va_alignment = label_kwargs.pop("va", None)
+    label_rotation = label_kwargs.pop("rotation", None)
+
+    label_kwargs = update_with_defaults(
+        label_kwargs,
+        default_dict={
+            "fontsize": 12,
+            "rotation_mode": "anchor",
+        },
+    )
 
     for nb, (angle, height, label) in enumerate(zip(angles, bar_heights[-1], labels)):
 
@@ -331,24 +353,58 @@ def clockplot(
         rotation = np.rad2deg(np.pi - (angle - bar_width * 0.5))
 
         # Flip some labels upside down
-        alignment = ""
-        if angle >= 0 and angle < np.pi:
-            alignment = "left"
-            rotation = rotation + 270
+        ha_alignment_ = ""
+        if label_rotation != 0.0:
+            if angle >= 0 and angle < np.pi:
+                ha_alignment_ = "left"
+                va_alignment_ = "center"
+                rotation = rotation + 270 if label_rotation is None else label_rotation
+            else:
+                ha_alignment_ = "right"
+                va_alignment_ = "center"
+                rotation = rotation + 90 if label_rotation is None else label_rotation
         else:
-            alignment = "right"
-            rotation = rotation + 90
+            if angle >= 0 and angle < np.pi / 4:
+                ha_alignment_ = "center"
+                va_alignment_ = "bottom"
+                rotation = label_rotation
+            elif angle >= np.pi / 4 and angle < 3 * np.pi / 4:
+                ha_alignment_ = "left"
+                va_alignment_ = "center"
+                rotation = label_rotation
+            elif angle >= 3 * np.pi / 4 and angle < np.pi:
+                ha_alignment_ = "center"
+                va_alignment_ = "top"
+                rotation = label_rotation
+            elif angle >= 3 * np.pi / 4 and angle < 5 * np.pi / 4:
+                ha_alignment_ = "center"
+                va_alignment_ = "top"
+                rotation = label_rotation
+            elif angle >= 5 * np.pi / 4 and angle < 7 * np.pi / 4:
+                ha_alignment_ = "right"
+                va_alignment_ = "center"
+                rotation = label_rotation
+            elif angle >= 7 * np.pi / 4 and angle < 2 * np.pi:
+                ha_alignment_ = "center"
+                va_alignment_ = "bottom"
+                rotation = label_rotation
+            else:
+                ha_alignment_ = "center"
+                va_alignment_ = "center"
+                rotation = label_rotation
 
         # Finally add the labels
         ax.text(
             x=angle - bar_width * 0.5,
-            y=lowerLimit + bar_height + labelPadding * max_height,  # bar.get_height(),
+            y=max_height
+            + lower_limit
+            + label_padding
+            * max_height,  # lowerLimit + bar_height + label_padding * max_height,  # bar.get_height(),
             s=label,
-            ha=alignment,
-            va="center",
+            ha=ha_alignment_ if ha_alignment is None else ha_alignment,
+            va=va_alignment_ if va_alignment is None else va_alignment,
             rotation=rotation,
-            rotation_mode="anchor",
-            fontsize=12,
+            **label_kwargs,
         )
 
     return ax
