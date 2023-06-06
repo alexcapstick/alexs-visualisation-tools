@@ -212,6 +212,7 @@ def parallelplot(
     cbar: bool = False,
     cbar_x: float = 1.1,
     legend: bool = True,
+    tick_top: bool = True,
     cbar_kwargs: typing.Dict[str, typing.Any] = {},
     legend_kwargs: typing.Dict[str, typing.Any] = {},
     ax=None,
@@ -220,6 +221,8 @@ def parallelplot(
     """
     Plot a parallel plot.
 
+    This has been edited from
+    https://stackoverflow.com/a/60401570/19451559
 
 
     Examples
@@ -298,6 +301,16 @@ def parallelplot(
         The x position of the colorbar.
         Defaults to :code:`1.1`.
 
+    - legend: bool:
+        Whether to add a legend.
+        Defaults to :code:`True`.
+
+    - tick_top: bool:
+        Whether to put the ticks on the top
+        of the plot. If :code:`False`, then
+        the ticks will be on the bottom.
+        Defaults to :code:`True`.
+
     - cbar_kwargs: typing.Dict[str, typing.Any]:
         Additional keyword arguments to pass
         to :code:`plt.colorbar`.
@@ -307,10 +320,6 @@ def parallelplot(
         Additional keyword arguments to pass
         to :code:`plt.legend`.
         Defaults to :code:`{}`.
-
-    - legend: bool:
-        Whether to add a legend.
-        Defaults to :code:`True`.
 
     - ax: plt.Axes:
         The axes on which to plot.
@@ -329,8 +338,6 @@ def parallelplot(
 
 
     """
-
-    # edited from https://stackoverflow.com/a/60401570/19451559
 
     if ax is None:
         fig, host = plt.subplots()
@@ -421,7 +428,7 @@ def parallelplot(
     host.set_xticklabels(variable_names)
     host.tick_params(axis="x", which="major", pad=7)
     host.spines["right"].set_visible(False)
-    host.xaxis.tick_top()
+    host.xaxis.set_ticks_position("top" if tick_top else "bottom")
 
     if hue is not None:
         legend_handles = {h: None for h in hues}
