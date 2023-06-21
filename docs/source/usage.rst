@@ -10,7 +10,7 @@ To use avt, first install it using pip:
 
 .. code-block:: console
 
-   (.venv) $ pip install alexs-visualisation-tools
+   (.venv) $ pip install git+https://github.com/alexcapstick/alexs-visualisation-tools@main#egg=avt
 
 
 
