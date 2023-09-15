@@ -9,6 +9,11 @@ class ReliabilityDisplay:
     """
     Class to plot a reliability diagram from predictions.
 
+
+    Examples
+    ---------
+
+
     This can be used to plot the reliability diagram from predictions
     made by a classifier, such as:
 
