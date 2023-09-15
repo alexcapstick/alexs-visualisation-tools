@@ -295,11 +295,7 @@ class ReliabilityDisplay:
 
         return ax
 
-    def _set_same_xaxis_limits(axes: t.Dict[str, plt.Axes]):
-
-        # same limits
-        axes["A"].set_xlim(0, 1)
-        axes["B"].set_xlim(0, 1)
+    def _set_same_xaxis(axes: t.Dict[str, plt.Axes]):
 
         # same ticks
         xticks = axes["A"].get_xticks()
@@ -308,6 +304,10 @@ class ReliabilityDisplay:
         # remove ticks and labels from plot A
         axes["A"].set_xticklabels([])
         axes["A"].set_xlabel("")
+
+        # same limits
+        axes["A"].set_xlim(0, 1)
+        axes["B"].set_xlim(0, 1)
 
         return axes
 
@@ -452,7 +452,7 @@ class ReliabilityDisplay:
             ax=axes["B"],
         )
 
-        axes = ReliabilityDisplay._set_same_xaxis_limits(axes)
+        axes = ReliabilityDisplay._set_same_xaxis(axes)
 
         return np.array([axes["A"], axes["B"]])
 
