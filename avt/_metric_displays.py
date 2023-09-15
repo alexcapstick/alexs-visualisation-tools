@@ -64,12 +64,12 @@ class ReliabilityDisplay:
         - y_true : numpy.ndarray:
             True labels. Please note that this vector should only contain
             integers that correspond to the probabilities in the second
-            dimension of probas_pred.
+            dimension of :code:`probas_pred`.
 
         - probas_pred : numpy.ndarray:
             Predicted probabilities, as returned by a classifier's
-            predict_proba method. This array should have the shape
-            (n_samples, n_classes).
+            :code:`predict_proba` method. This array should have the shape
+            :code:`(n_samples, n_classes)`.
 
         - n_bins : int:
             The number of bins to use when calculating ECE.
@@ -336,12 +336,12 @@ class ReliabilityDisplay:
         - y_true : numpy.ndarray:
             True labels. Please note that this vector should only contain
             integers that correspond to the probabilities in the second
-            dimension of probas_pred.
+            dimension of :code:`probas_pred`.
 
         - probas_pred : numpy.ndarray:
             Predicted probabilities, as returned by a classifier's
-            predict_proba method. This array should have the shape
-            (n_samples, n_classes).
+            :code:`predict_proba` method. This array should have the shape
+            :code:`(n_samples, n_classes)`.
 
         - n_bins : int:
             The number of bins to use when calculating ECE.
@@ -472,10 +472,10 @@ class ReliabilityDisplay:
             The true labels.
 
         - *args :
-            Positional arguments to pass to the from_predictions method.
+            Positional arguments to pass to the :code:`from_predictions` method.
 
         - **kwargs :
-            Keyword arguments to pass to the from_predictions method.
+            Keyword arguments to pass to the :code:`from_predictions` method.
 
 
         Returns
