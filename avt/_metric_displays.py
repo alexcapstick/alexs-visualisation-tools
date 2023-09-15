@@ -13,10 +13,8 @@ class ReliabilityDisplay:
     Examples
     ---------
 
-
     This can be used to plot the reliability diagram from predictions
     made by a classifier, such as:
-
 
     .. code-block::
 
@@ -31,9 +29,7 @@ class ReliabilityDisplay:
         :align: center
         :alt: Alternative text
 
-
     Or from the classifier directly:
-
 
     .. code-block::
 
