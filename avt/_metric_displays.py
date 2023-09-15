@@ -228,6 +228,8 @@ class ReliabilityDisplay:
         confidence_avg,
         hist_color,
         histogram_kwargs,
+        label_box_kwargs,
+        label_ys,
         accuracy_line_color,
         confidence_line_color,
         ax,
@@ -251,6 +253,15 @@ class ReliabilityDisplay:
 
         text_offset = 0.01
 
+        if "boxstyle" not in label_box_kwargs:
+            label_box_kwargs["boxstyle"] = "square"
+
+        if "fc" not in label_box_kwargs:
+            label_box_kwargs["fc"] = "w"
+
+        if "alpha" not in label_box_kwargs:
+            label_box_kwargs["alpha"] = 0.8
+
         ax.axvline(
             x=accuracy_avg,
             color=accuracy_line_color,
@@ -259,12 +270,12 @@ class ReliabilityDisplay:
 
         ax.text(
             accuracy_avg - text_offset,
-            0.8,
+            label_ys[0],
             f"Avg Accy: {accuracy_avg:.2f}",
             transform=ax.get_xaxis_transform(),
             ha="right",
             va="center",
-            bbox=dict(boxstyle="square", fc="w", ec=accuracy_line_color, alpha=0.8),
+            bbox=dict(ec=accuracy_line_color, **label_box_kwargs),
         )
 
         ax.axvline(
@@ -275,17 +286,15 @@ class ReliabilityDisplay:
 
         ax.text(
             confidence_avg - text_offset,
-            0.6,
+            label_ys[1],
             f"Avg Conf: {confidence_avg:.2f}",
             transform=ax.get_xaxis_transform(),
             ha="right",
             va="center",
             bbox=dict(
-                boxstyle="square",
-                fc="w",
                 ec=confidence_line_color,
-                alpha=0.8,
                 linestyle="--",
+                **label_box_kwargs,
             ),
         )
 
@@ -321,6 +330,8 @@ class ReliabilityDisplay:
         bar_kwargs: dict = {},
         histogram_kwargs: dict = {},
         line_kwargs: dict = {},
+        label_box_kwargs: dict = {},
+        label_ys: t.Tuple[float, float] = (0.8, 0.6),
         ax1: t.Optional[plt.Axes] = None,
         ax2: t.Optional[plt.Axes] = None,
     ) -> np.ndarray:
@@ -383,6 +394,15 @@ class ReliabilityDisplay:
             Keyword arguments to pass to the line plot.
             Defaults to :code:`{}`.
 
+        - label_box_kwargs : dict:
+            Keyword arguments to pass to the label :code:`bbox` in the
+            histogram plot.
+            Defaults to :code:`{}`.
+
+        - label_ys : tuple:
+            The y coordinates of the labels in the histogram plot.
+            Defaults to :code:`(0.8, 0.6)`.
+
         - ax1 : matplotlib.axes.Axes:
             The axes to plot the reliability diagram on.
             Defaults to :code:`None`.
@@ -443,6 +463,8 @@ class ReliabilityDisplay:
             n_bins=n_bins,
             hist_color=hist_color,
             histogram_kwargs=histogram_kwargs,
+            label_box_kwargs=label_box_kwargs,
+            label_ys=label_ys,
             accuracy_line_color=accuracy_line_color,
             confidence_line_color=confidence_line_color,
             ax=axes["B"],
