@@ -11,6 +11,7 @@ from ._boxplot import boxplot
 from ._catplot import clockplot, bar_labels, timefreqheatmap, waterfallplot, radarplot
 from ._lineplot import stackplot, parallelplot
 from ._matrixplot import cfmplot
+from ._metric_displays import ReliabilityDisplay
 from ._save_fig import save_fig
 from ._scatterplot import scatter3dplot
 from ._theme import paper_theme, tol_muted, ibm, set_colour_map, temp_colour_map
@@ -26,6 +27,7 @@ __all__ = [
     "waterfallplot",
     "radarplot",
     "cfmplot",
+    "ReliabilityDisplay",
     "save_fig",
     "scatter3dplot",
     "paper_theme",

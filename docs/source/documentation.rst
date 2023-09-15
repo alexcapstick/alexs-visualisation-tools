@@ -65,6 +65,21 @@ Here is the documentation for the matrixplot functionality.
 
 
 
+
+Metric Displays
+------------
+
+Here is the documentation for plotting graphs directly from results.
+
+
+.. automodule:: avt._metric_displays
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+
+
 Save Fig
 ------------
 
