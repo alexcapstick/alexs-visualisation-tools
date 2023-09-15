@@ -199,7 +199,6 @@ class ReliabilityDisplay:
             color=gap_color,
             align="edge",
             width=1 / n_bins,
-            alpha=0.5,
             label="Gap",
             **bar_kwargs,
         )
