@@ -230,6 +230,7 @@ class ReliabilityDisplay:
         histogram_kwargs,
         label_box_kwargs,
         label_ys,
+        label_offset,
         accuracy_line_color,
         confidence_line_color,
         ax,
@@ -251,8 +252,6 @@ class ReliabilityDisplay:
         ax.set_ylabel("Count")
         ax.set_xlabel("Confidence")
 
-        text_offset = 0.01
-
         if "boxstyle" not in label_box_kwargs:
             label_box_kwargs["boxstyle"] = "square"
 
@@ -269,7 +268,7 @@ class ReliabilityDisplay:
         )
 
         ax.text(
-            accuracy_avg - text_offset,
+            accuracy_avg + label_offset,
             label_ys[0],
             f"Avg Accy: {accuracy_avg:.2f}",
             transform=ax.get_xaxis_transform(),
@@ -285,7 +284,7 @@ class ReliabilityDisplay:
         )
 
         ax.text(
-            confidence_avg - text_offset,
+            confidence_avg + label_offset,
             label_ys[1],
             f"Avg Conf: {confidence_avg:.2f}",
             transform=ax.get_xaxis_transform(),
@@ -332,6 +331,7 @@ class ReliabilityDisplay:
         line_kwargs: dict = {},
         label_box_kwargs: dict = {},
         label_ys: t.Tuple[float, float] = (0.8, 0.6),
+        label_offset: float = -0.01,
         ax1: t.Optional[plt.Axes] = None,
         ax2: t.Optional[plt.Axes] = None,
     ) -> np.ndarray:
@@ -403,6 +403,9 @@ class ReliabilityDisplay:
             The y coordinates of the labels in the histogram plot.
             Defaults to :code:`(0.8, 0.6)`.
 
+        - label_offset : float:
+            The offset of the labels in the histogram plot.
+
         - ax1 : matplotlib.axes.Axes:
             The axes to plot the reliability diagram on.
             Defaults to :code:`None`.
@@ -465,6 +468,7 @@ class ReliabilityDisplay:
             histogram_kwargs=histogram_kwargs,
             label_box_kwargs=label_box_kwargs,
             label_ys=label_ys,
+            label_offset=label_offset,
             accuracy_line_color=accuracy_line_color,
             confidence_line_color=confidence_line_color,
             ax=axes["B"],
